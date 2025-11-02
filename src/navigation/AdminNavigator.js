@@ -3,14 +3,9 @@ import { View, Text, StyleSheet } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
 
-import AdminOverviewScreen from '../screens/admin/AdminOverviewScreen';
-import AdminObservationsScreen from '../screens/admin/AdminObservationsScreen';
-import AdminSpeciesScreen from '../screens/admin/AdminSpeciesScreen';
-import AdminDevicesScreen from '../screens/admin/AdminDevicesScreen';
-import AdminAlertsScreen from '../screens/admin/AdminAlertsScreen';
 import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
-import AdminSettingsScreen from '../screens/admin/AdminSettingsScreen';
-import { ADMIN_OVERVIEW } from './routes';
+import AdminFlagUnsureScreen from '../screens/admin/AdminFlagUnsureScreen';
+import { ADMIN_USERS, ADMIN_FLAG_UNSURE } from './routes';
 
 const Drawer = createDrawerNavigator();
 
@@ -20,15 +15,19 @@ const ADMIN_PROFILE = {
   email: 'flora.admin@smartplant.dev',
 };
 
+const ADMIN_INITIALS = ADMIN_PROFILE.name
+  .split(' ')
+  .filter(Boolean)
+  .map((part) => part[0]?.toUpperCase() ?? '')
+  .join('')
+  .slice(0, 2) || 'AD';
+
 function AdminDrawerContent(props) {
   return (
-    <DrawerContentScrollView
-      {...props}
-      contentContainerStyle={styles.drawerScrollContainer}
-    >
+    <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerScrollContainer}>
       <View style={styles.profileContainer}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{ADMIN_PROFILE.name.split(' ')[0][0]}{ADMIN_PROFILE.name.split(' ')[1][0]}</Text>
+          <Text style={styles.avatarText}>{ADMIN_INITIALS}</Text>
         </View>
         <Text style={styles.profileName}>{ADMIN_PROFILE.name}</Text>
         <Text style={styles.profileRole}>{ADMIN_PROFILE.role}</Text>
@@ -49,66 +48,37 @@ function AdminDrawerContent(props) {
 
 const drawerScreens = [
   {
-    name: ADMIN_OVERVIEW,
-    label: 'Overview',
-    icon: 'grid-outline',
-    component: AdminOverviewScreen,
-  },
-  {
-    name: 'AdminObservations',
-    label: 'Observations',
-    icon: 'leaf-outline',
-    component: AdminObservationsScreen,
-  },
-  {
-    name: 'AdminSpecies',
-    label: 'Species Library',
-    icon: 'library-outline',
-    component: AdminSpeciesScreen,
-  },
-  {
-    name: 'AdminDevices',
-    label: 'Sensor Devices',
-    icon: 'hardware-chip-outline',
-    component: AdminDevicesScreen,
-  },
-  {
-    name: 'AdminAlerts',
-    label: 'Alerts',
-    icon: 'alert-circle-outline',
-    component: AdminAlertsScreen,
-  },
-  {
-    name: 'AdminUsers',
-    label: 'Users & Roles',
+    name: ADMIN_USERS,
+    label: 'Users',
     icon: 'people-outline',
     component: AdminUsersScreen,
   },
   {
-    name: 'AdminSettings',
-    label: 'Settings',
-    icon: 'settings-outline',
-    component: AdminSettingsScreen,
+    name: ADMIN_FLAG_UNSURE,
+    label: 'Flag Unsure',
+    icon: 'flag-outline',
+    component: AdminFlagUnsureScreen,
   },
 ];
 
 export default function AdminNavigator() {
   return (
     <Drawer.Navigator
-      initialRouteName={ADMIN_OVERVIEW}
+      initialRouteName={ADMIN_USERS}
       drawerContent={(props) => <AdminDrawerContent {...props} />}
       screenOptions={{
-        headerStyle: { backgroundColor: '#F4F6F8' },
-        headerTitleStyle: { color: '#1D3A2C', fontSize: 18, fontWeight: '700' },
-        headerTintColor: '#1D3A2C',
-        sceneContainerStyle: { backgroundColor: '#F4F6F8' },
+        headerStyle: { backgroundColor: '#FFFFFF' },
+        headerTitleStyle: { color: '#1E2D3D', fontSize: 18, fontWeight: '700' },
+        headerTintColor: '#1E2D3D',
+        headerShadowVisible: false,
+        sceneContainerStyle: { backgroundColor: '#FFFFFF' },
         drawerType: 'front',
-        drawerStyle: { width: 280 },
-        drawerInactiveTintColor: '#3F5149',
-        drawerActiveTintColor: '#2C8155',
-        drawerActiveBackgroundColor: '#E6F3EB',
+        drawerStyle: { width: 256, backgroundColor: '#FFFFFF' },
+        drawerInactiveTintColor: '#51606C',
+        drawerActiveTintColor: '#1E88E5',
+        drawerActiveBackgroundColor: '#E6F2FE',
         drawerLabelStyle: { fontSize: 15, fontWeight: '500', marginLeft: -12 },
-        drawerItemStyle: { borderRadius: 12, marginVertical: 4 },
+        drawerItemStyle: { borderRadius: 10, marginVertical: 2 },
       }}
     >
       {drawerScreens.map((screen) => (
@@ -132,20 +102,21 @@ const styles = StyleSheet.create({
   drawerScrollContainer: {
     flexGrow: 1,
     paddingTop: 0,
-    backgroundColor: '#F4F6F8',
+    backgroundColor: '#FFFFFF',
   },
   profileContainer: {
     paddingHorizontal: 20,
-    paddingTop: 48,
+    paddingTop: 36,
     paddingBottom: 24,
-    backgroundColor: '#1D3A2C',
-    borderBottomRightRadius: 32,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEF2F5',
   },
   avatar: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#6DAF7A',
+    backgroundColor: '#1E88E5',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -158,19 +129,19 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1E2D3D',
   },
   profileRole: {
     marginTop: 4,
     fontSize: 13,
-    color: '#C6E4D1',
-    letterSpacing: 1,
+    color: '#71808E',
+    letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   profileEmail: {
     marginTop: 6,
     fontSize: 12,
-    color: '#E0F1E7',
+    color: '#8794A0',
   },
   drawerListWrapper: {
     flex: 1,
@@ -180,18 +151,19 @@ const styles = StyleSheet.create({
   drawerFooter: {
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#E3EBE6',
+    borderTopColor: '#EEF2F5',
+    backgroundColor: '#FFFFFF',
   },
   footerText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#3F5149',
+    color: '#1E2D3D',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   footerSubtext: {
     marginTop: 4,
     fontSize: 12,
-    color: '#6B7B86',
+    color: '#51606C',
   },
 });
