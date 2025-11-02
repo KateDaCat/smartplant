@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { loginUser, forgotPassword } from "../../services/api";
-import { ROOT_TABS } from '../navigation/routes';
 
 
 
@@ -23,19 +22,19 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   // ✅ Fake API placeholder (replace later by backend)
-  const fakeLoginAPI = async (email, password) => {
-    console.log("Sending login request:", email, password);
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
+  //const fakeLoginAPI = async (email, password) => {
+    //console.log("Sending login request:", email, password);
+    //return new Promise((resolve, reject) => {
+      //setTimeout(() => {
         // Simulate success if email = "test@example.com"
-        if (email === "test@example.com" && password === "12345678") {
-          resolve({ success: true });
-        } else {
-          reject(new Error("Invalid email or password"));
-        }
-      }, 1000);
-    });
-  };
+        //if (email === "test@example.com" && password === "12345678") {
+          //resolve({ success: true });
+        //} else {
+          //reject(new Error("Invalid email or password"));
+        //}
+      //}, 1000);
+    //});
+  //};
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -54,10 +53,12 @@ export default function LoginScreen({ navigation }) {
           // Later: save token or user info securely
         }
         navigation.reset({
-  index: 0,
-  routes: [{ name: ROOT_TABS }],
-});
-
+  //index: 0,
+  //routes: [{ name: ROOT_TABS }],
+//});
+          index: 0,
+          routes: [{ name: ADMIN_ROOT }],
+        });
       }
     } catch (error) {
       Alert.alert("Login Failed", error.message);
