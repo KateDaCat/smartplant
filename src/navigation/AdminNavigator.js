@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
 import AdminFlagUnsureScreen from '../screens/admin/AdminFlagUnsureScreen';
-import { ADMIN_USERS, ADMIN_FLAG_UNSURE } from './src/navigation/routes';
+import { ADMIN_USERS, ADMIN_FLAG_UNSURE } from './routes';
 
 const Drawer = createDrawerNavigator();
 
