@@ -20,7 +20,7 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import LoginScreen from '../screens/LoginScreen';
 import HeatmapScreen from '../screens/HeatmapScreen';
-import AdminNavigator from '../navigation/AdminNavigator';
+import AdminNavigator from './AdminNavigator';
 
 
 const Tab = createBottomTabNavigator();
