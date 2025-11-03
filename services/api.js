@@ -14,12 +14,13 @@ const MOCK_ACCOUNTS = {
 
 //mock version for testing
 export const loginUser = async (email, password) => {
-  console.log("Logging in:", email, password);
+  const key = email.trim().toLowerCase();
+  console.log("Logging in:", key);
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      const account = MOCK_ACCOUNTS[email.toLowerCase()];
+      const account = MOCK_ACCOUNTS[key];
       if (account && account.password === password) {
-        resolve({ success: true, role: account.role, email });
+        resolve({ success: true, role: account.role, email: key });
       } else {
         reject(new Error("Invalid email or password"));
       }

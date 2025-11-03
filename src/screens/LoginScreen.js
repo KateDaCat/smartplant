@@ -32,8 +32,15 @@ export default function LoginScreen({ navigation }) {
     try {
       const response = await loginUser(email, password);
       if (response.success) {
-        const destination = response.role === 'admin' ? ADMIN_ROOT : ROOT_TABS;
-        Alert.alert("Login Successful", `Signed in as ${response.role === 'admin' ? 'administrator' : 'user'}.`);
+        const destinations = {
+          admin: ADMIN_ROOT,
+          user: ROOT_TABS,
+        };
+        const destination = destinations[response.role] ?? ROOT_TABS;
+        Alert.alert(
+          "Login Successful",
+          `Signed in as ${response.role === 'admin' ? 'administrator' : 'user'}.`
+        );
         // TODO: Remember user if checked
         if (rememberMe) {
           console.log("User wants to be remembered:", email);
