@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { loginUser, forgotPassword } from "../../services/api";
-import { ADMIN_ROOT } from '../navigation/routes';
+import { ADMIN_ROOT, ROOT_TABS } from '../navigation/routes';
 
 
 
@@ -32,7 +32,8 @@ export default function LoginScreen({ navigation }) {
     try {
       const response = await loginUser(email, password);
       if (response.success) {
-        Alert.alert("Login Successful", "Welcome back!");
+        const destination = response.role === 'admin' ? ADMIN_ROOT : ROOT_TABS;
+        Alert.alert("Login Successful", `Signed in as ${response.role === 'admin' ? 'administrator' : 'user'}.`);
         // TODO: Remember user if checked
         if (rememberMe) {
           console.log("User wants to be remembered:", email);
@@ -40,7 +41,7 @@ export default function LoginScreen({ navigation }) {
         }
         navigation.reset({
           index: 0,
-          routes: [{ name: ADMIN_ROOT }],
+          routes: [{ name: destination }],
         });
 
       }
