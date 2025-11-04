@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, Heatmap } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
@@ -83,6 +83,8 @@ export default function AdminHeatmapScreen() {
     );
   };
 
+  const HEATMAP_RADIUS = Platform.OS === 'android' ? 40 : 60;
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -114,10 +116,10 @@ export default function AdminHeatmapScreen() {
           longitudeDelta: 0.3,
         }}
       >
-        {viewMode === 'heatmap' && (
+        {viewMode === 'heatmap' && points.length > 0 && (
           <Heatmap
             points={points}
-            radius={55}
+            radius={HEATMAP_RADIUS}
             opacity={0.75}
             gradient={{
               colors: ['#C2E1FB', '#7EB6F2', '#1F78D1', '#0C4A92'],
