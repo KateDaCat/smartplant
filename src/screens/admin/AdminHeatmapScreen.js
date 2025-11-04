@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Platform } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, Heatmap } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
@@ -55,6 +56,7 @@ const mockAdminObservations = [
 export default function AdminHeatmapScreen() {
   const [observations, setObservations] = useState(mockAdminObservations);
   const [viewMode, setViewMode] = useState('heatmap');
+  const navigation = useNavigation();
 
   const endangeredList = useMemo(
     () => observations.filter((obs) => obs.species.is_endangered),
@@ -142,7 +144,15 @@ export default function AdminHeatmapScreen() {
       </MapView>
 
       <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Endangered Species Controls</Text>
+        <View style={styles.panelHeader}>
+          <Text style={styles.panelTitle}>Endangered Species Controls</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('AdminEndangeredList')}
+            style={styles.viewAllButton}
+          >
+            <Text style={styles.viewAllText}>View All</Text>
+          </TouchableOpacity>
+        </View>
         <FlatList
           data={endangeredList}
           keyExtractor={(item) => item.observation_id}
@@ -217,7 +227,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     elevation: 6,
   },
-  panelTitle: { fontSize: 16, fontWeight: '700', color: '#0F1C2E', marginBottom: 12 },
+  panelTitle: { fontSize: 16, fontWeight: '700', color: '#0F1C2E' },
+  viewAllButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: '#EDF1F5',
+  },
+  viewAllText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
   listItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
