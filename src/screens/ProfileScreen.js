@@ -1,6 +1,7 @@
 // src/screens/ProfileScreen.js
 import React, { useMemo, useState } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
@@ -113,13 +114,30 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleLogout = () => {
+    nav.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  };
+
   return (
     <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>
       {/* Curved header */}
       <View style={[s.headerWrap, { paddingTop: insets.top + 8 }]}>
         <View style={s.headerBg} />
-        <View style={[s.headerContent, { height: headerHeight }]}>
-          <Image source={{ uri: mockUser.avatar }} style={s.avatar} />
+          <View style={[s.headerContent, { height: headerHeight }]}>
+            <View style={s.avatarRow}>
+            <Image source={{ uri: mockUser.avatar }} style={s.avatar} />
+            <Pressable
+              style={s.logoutButton}
+              onPress={handleLogout}
+              accessibilityRole="button"
+            >
+              <Ionicons name="log-out-outline" size={18} color="#1F2A37" />
+              <Text style={s.logoutText}>Logout</Text>
+            </Pressable>
+          </View>
           <Text style={s.name}>{mockUser.username}</Text>
           <Text style={s.uid}>UID: {mockUser.uid}</Text>
         </View>
@@ -158,10 +176,30 @@ const s = StyleSheet.create({
     borderBottomRightRadius: 40,
   },
   headerContent: { alignItems: 'center', justifyContent: 'center' },
+  avatarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   avatar: {
     width: 86, height: 86, borderRadius: 43,
     borderWidth: 3, borderColor: '#fff',
-    marginBottom: 10, backgroundColor: '#E5E7EB',
+    backgroundColor: '#E5E7EB',
+    marginRight: 12,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E5ECF3',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  logoutText: {
+    marginLeft: 6,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1F2A37',
   },
   name: { fontSize: 18, fontWeight: '800', color: '#244332' },
   uid: { color: '#2E6A4C', marginTop: 2, opacity: 0.9 },
