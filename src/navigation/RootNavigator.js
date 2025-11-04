@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ROOT_TABS, TAB_HOME, TAB_IDENTIFY, ADMIN_ROOT } from './routes';
+import { ROOT_TABS, TAB_HOME, TAB_IDENTIFY, ADMIN_ROOT, ADMIN_ENDANGERED } from './routes';
 
 // screens
 import HomeScreen from '../screens/HomeScreen';
