@@ -11,6 +11,7 @@ import HomeScreen from '../screens/HomeScreen';
 import SearchScreen from '../screens/SearchScreen';
 import IdentifyScreen from '../screens/IdentifyScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import CameraScreen from '../screens/CameraScreen';
 import PreviewScreen from '../screens/PreviewScreen';
 import ResultScreen from '../screens/ResultScreen';
@@ -129,6 +130,14 @@ export default function RootNavigator() {
           options={{
             headerShown: false,
             presentation: 'containedModal',
+          }}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{
+            headerShown: true,
+            headerTitle: 'Settings',
           }}
         />
 
