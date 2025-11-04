@@ -19,7 +19,7 @@ import ObservationDetailScreen from '../screens/ObservationDetailScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import LoginScreen from '../screens/LoginScreen';
-import HeatmapScreen from '../screens/HeatmapScreen';
+import HeatmapScreen from '../screens/admin/HeatmapScreen';
 import AdminNavigator from './AdminNavigator';
 
 const Tab = createBottomTabNavigator();
