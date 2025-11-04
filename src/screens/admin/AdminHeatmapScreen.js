@@ -86,25 +86,9 @@ export default function AdminHeatmapScreen() {
   const HEATMAP_RADIUS = Platform.OS === 'android' ? 40 : 60;
 
   return (
-    <SafeAreaView style={styles.container}>
+  <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Sensitive Species Heatmap</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            onPress={() => setViewMode('heatmap')}
-            style={[styles.modeButton, viewMode === 'heatmap' && styles.modeButtonActive]}
-          >
-            <Ionicons name="flame-outline" size={16} color={viewMode === 'heatmap' ? '#0F4C81' : '#5A6A78'} />
-            <Text style={[styles.modeButtonText, viewMode === 'heatmap' && styles.modeButtonTextActive]}>Heatmap</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setViewMode('markers')}
-            style={[styles.modeButton, viewMode === 'markers' && styles.modeButtonActive]}
-          >
-            <Ionicons name="location-outline" size={16} color={viewMode === 'markers' ? '#0F4C81' : '#5A6A78'} />
-            <Text style={[styles.modeButtonText, viewMode === 'markers' && styles.modeButtonTextActive]}>Markers</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.headerTitle}>Species Heatmap</Text>
       </View>
 
       <MapView
@@ -142,7 +126,25 @@ export default function AdminHeatmapScreen() {
       </MapView>
 
       <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Endangered Species Controls</Text>
+        <View style={styles.panelHeader}>
+          <Text style={styles.panelTitle}>Endangered Species Controls</Text>
+          <View style={styles.panelActions}>
+            <TouchableOpacity
+              onPress={() => setViewMode('heatmap')}
+              style={[styles.modeButton, viewMode === 'heatmap' && styles.modeButtonActive]}
+            >
+              <Ionicons name="flame-outline" size={16} color={viewMode === 'heatmap' ? '#0F4C81' : '#5A6A78'} />
+              <Text style={[styles.modeButtonText, viewMode === 'heatmap' && styles.modeButtonTextActive]}>Heatmap</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setViewMode('markers')}
+              style={[styles.modeButton, viewMode === 'markers' && styles.modeButtonActive]}
+            >
+              <Ionicons name="location-outline" size={16} color={viewMode === 'markers' ? '#0F4C81' : '#5A6A78'} />
+              <Text style={[styles.modeButtonText, viewMode === 'markers' && styles.modeButtonTextActive]}>Markers</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         <FlatList
           data={endangeredList}
           keyExtractor={(item) => item.observation_id}
@@ -185,12 +187,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E3E8EE',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#0F1C2E' },
-  headerActions: { flexDirection: 'row', gap: 12 },
   modeButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -217,6 +215,16 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   panelTitle: { fontSize: 16, fontWeight: '700', color: '#0F1C2E', marginBottom: 12 },
+  panelHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  panelActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   listItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
