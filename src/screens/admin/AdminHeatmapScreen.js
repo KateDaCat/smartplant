@@ -117,16 +117,16 @@ export default function AdminHeatmapScreen() {
         }}
       >
         {viewMode === 'heatmap' && points.length > 0 && (
-          <Heatmap
-            points={points}
-            radius={HEATMAP_RADIUS}
-            opacity={0.75}
-            gradient={{
-              colors: ['#C2E1FB', '#7EB6F2', '#1F78D1', '#0C4A92'],
-              startPoints: [0.1, 0.4, 0.7, 1],
-              colorMapSize: 256,
-            }}
-          />
+            <Heatmap
+              points={points}
+              radius={HEATMAP_RADIUS}
+              opacity={0.7}
+              gradient={{
+                colors: ['#ADFF2F', '#FFFF00', '#FF8C00', '#FF0000'],
+                startPoints: [0.01, 0.25, 0.5, 1],
+                colorMapSize: 256,
+              }}
+            />
         )}
 
         {viewMode === 'markers' &&
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 12,
-    backgroundColor: '#FFFFFF',
+      backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E3E8EE',
   },
