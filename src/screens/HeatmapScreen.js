@@ -202,6 +202,7 @@ export default function HeatmapScreen() {
                 }}
                 title={obs.species.common_name}
                 description={obs.location_name}
+                pinColor="#2C6E49"
                 onPress={() => {
                   try {
                     setSelectedPlant(obs);
@@ -209,16 +210,7 @@ export default function HeatmapScreen() {
                     console.log("Error selecting plant:", e);
                   }
                 }}
-              >
-                <Image
-                  source={
-                    typeof obs.species.image_url === "number"
-                      ? obs.species.image_url
-                      : { uri: obs.species.image_url }
-                  }
-                  style={{ width: 40, height: 40, borderRadius: 20 }}
-                />
-              </Marker>
+              />
             ))}
         </MapView>
 

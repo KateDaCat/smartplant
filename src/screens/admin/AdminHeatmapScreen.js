@@ -136,7 +136,7 @@ export default function AdminHeatmapScreen() {
               coordinate={{ latitude: obs.location_latitude, longitude: obs.location_longitude }}
               title={obs.species.common_name}
               description={obs.location_name}
-              pinColor={obs.is_masked ? '#9AA6B2' : obs.species.is_endangered ? '#D72638' : '#2E7D32'}
+              pinColor="#1F5E92"
             />
           ))}
       </MapView>
