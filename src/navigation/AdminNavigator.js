@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
 import AdminFlagUnsureScreen from '../screens/admin/AdminFlagUnsureScreen';
@@ -23,6 +24,15 @@ const ADMIN_INITIALS = ADMIN_PROFILE.name
   .slice(0, 2) || 'AD';
 
 function AdminDrawerContent(props) {
+  const navigation = useNavigation();
+
+  const handleLogout = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  };
+
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerScrollContainer}>
       <View style={styles.profileContainer}>
@@ -32,6 +42,10 @@ function AdminDrawerContent(props) {
         <Text style={styles.profileName}>{ADMIN_PROFILE.name}</Text>
         <Text style={styles.profileRole}>{ADMIN_PROFILE.role}</Text>
         <Text style={styles.profileEmail}>{ADMIN_PROFILE.email}</Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.7} accessibilityRole="button">
+          <Ionicons name="log-out-outline" size={18} color="#1E2D3D" />
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.drawerListWrapper}>
@@ -142,6 +156,22 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 12,
     color: '#8794A0',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: '#EEF2F8',
+    gap: 8,
+  },
+  logoutText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1E2D3D',
   },
   drawerListWrapper: {
     flex: 1,

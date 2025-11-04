@@ -22,7 +22,6 @@ import LoginScreen from '../screens/LoginScreen';
 import HeatmapScreen from '../screens/HeatmapScreen';
 import AdminNavigator from './AdminNavigator';
 
-
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
@@ -132,6 +131,7 @@ export default function RootNavigator() {
             presentation: 'containedModal',
           }}
         />
+
         {/* --- Flow screens on top of tabs --- */}
         <Stack.Screen name="Camera" component={CameraScreen} />
         <Stack.Screen name="Preview" component={PreviewScreen} />
