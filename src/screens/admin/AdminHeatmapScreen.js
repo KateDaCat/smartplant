@@ -89,6 +89,22 @@ export default function AdminHeatmapScreen() {
   <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Species Heatmap</Text>
+        <View style={styles.modeRow}>
+          <TouchableOpacity
+            onPress={() => setViewMode('heatmap')}
+            style={[styles.modeButton, viewMode === 'heatmap' && styles.modeButtonActive]}
+          >
+            <Ionicons name="flame-outline" size={16} color={viewMode === 'heatmap' ? '#0F4C81' : '#5A6A78'} />
+            <Text style={[styles.modeButtonText, viewMode === 'heatmap' && styles.modeButtonTextActive]}>Heatmap</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setViewMode('markers')}
+            style={[styles.modeButton, viewMode === 'markers' && styles.modeButtonActive]}
+          >
+            <Ionicons name="location-outline" size={16} color={viewMode === 'markers' ? '#0F4C81' : '#5A6A78'} />
+            <Text style={[styles.modeButtonText, viewMode === 'markers' && styles.modeButtonTextActive]}>Markers</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <MapView
@@ -126,25 +142,7 @@ export default function AdminHeatmapScreen() {
       </MapView>
 
       <View style={styles.panel}>
-        <View style={styles.panelHeader}>
-          <Text style={styles.panelTitle}>Endangered Species Controls</Text>
-          <View style={styles.panelActions}>
-            <TouchableOpacity
-              onPress={() => setViewMode('heatmap')}
-              style={[styles.modeButton, viewMode === 'heatmap' && styles.modeButtonActive]}
-            >
-              <Ionicons name="flame-outline" size={16} color={viewMode === 'heatmap' ? '#0F4C81' : '#5A6A78'} />
-              <Text style={[styles.modeButtonText, viewMode === 'heatmap' && styles.modeButtonTextActive]}>Heatmap</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setViewMode('markers')}
-              style={[styles.modeButton, viewMode === 'markers' && styles.modeButtonActive]}
-            >
-              <Ionicons name="location-outline" size={16} color={viewMode === 'markers' ? '#0F4C81' : '#5A6A78'} />
-              <Text style={[styles.modeButtonText, viewMode === 'markers' && styles.modeButtonTextActive]}>Markers</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <Text style={styles.panelTitle}>Endangered Species Controls</Text>
         <FlatList
           data={endangeredList}
           keyExtractor={(item) => item.observation_id}
@@ -189,6 +187,11 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E3E8EE',
   },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#0F1C2E' },
+  modeRow: {
+    marginTop: 12,
+    flexDirection: 'row',
+    gap: 12,
+  },
   modeButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -215,16 +218,6 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   panelTitle: { fontSize: 16, fontWeight: '700', color: '#0F1C2E', marginBottom: 12 },
-  panelHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  panelActions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
   listItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
