@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
 
 const formatDate = (iso) => {
   const date = new Date(iso);
@@ -43,7 +43,10 @@ export default function AdminFlagReviewScreen({ route, navigation }) {
         </View>
 
         <View style={styles.actionsRow}>
-          <TouchableOpacity style={styles.approveButton}>
+          <TouchableOpacity
+            style={styles.approveButton}
+            onPress={() => Alert.alert('Approved', 'The observation has been approved.')}
+          >
             <Text style={styles.approveText}>Approve</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.identifyButton}>
