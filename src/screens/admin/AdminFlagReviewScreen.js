@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal, TextInput } from 'react-native';
 
 const formatDate = (iso) => {
   const date = new Date(iso);
@@ -10,6 +10,8 @@ const formatDate = (iso) => {
 export default function AdminFlagReviewScreen({ route, navigation }) {
   const observation = route?.params?.observation;
   const [showImage, setShowImage] = useState(false);
+  const [identifyVisible, setIdentifyVisible] = useState(false);
+  const [identifiedName, setIdentifiedName] = useState('');
 
   if (!observation) {
     return (
@@ -52,7 +54,13 @@ export default function AdminFlagReviewScreen({ route, navigation }) {
           >
             <Text style={styles.approveText}>Approve</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.identifyButton}>
+          <TouchableOpacity
+            style={styles.identifyButton}
+            onPress={() => {
+              setIdentifiedName('');
+              setIdentifyVisible(true);
+            }}
+          >
             <Text style={styles.identifyText}>Identify</Text>
           </TouchableOpacity>
         </View>
@@ -63,6 +71,39 @@ export default function AdminFlagReviewScreen({ route, navigation }) {
             <TouchableOpacity style={styles.modalDismiss} onPress={() => setShowImage(false)}>
               <Text style={styles.modalDismissText}>Close</Text>
             </TouchableOpacity>
+          </View>
+        </Modal>
+        <Modal visible={identifyVisible} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.identifyCard}>
+              <Text style={styles.identifyTitle}>Confirm Plant Identity</Text>
+              <Text style={styles.identifyLabel}>Plant Name</Text>
+              <TextInput
+                style={styles.identifyInput}
+                value={identifiedName}
+                onChangeText={setIdentifiedName}
+                placeholder="Enter confirmed plant name"
+                placeholderTextColor="#94A3B8"
+              />
+              <View style={styles.identifyActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setIdentifyVisible(false)}
+                >
+                  <Text style={styles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.confirmButton, !identifiedName && styles.confirmButtonDisabled]}
+                  disabled={!identifiedName}
+                  onPress={() => {
+                    Alert.alert('Identified', `Recorded as ${identifiedName}.`);
+                    setIdentifyVisible(false);
+                  }}
+                >
+                  <Text style={styles.confirmText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </Modal>
       </ScrollView>
@@ -190,6 +231,62 @@ const styles = StyleSheet.create({
   modalDismissText: {
     fontSize: 14,
     fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  identifyCard: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    gap: 14,
+  },
+  identifyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  identifyLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  identifyInput: {
+    borderWidth: 1,
+    borderColor: '#CBD5F5',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#0F172A',
+  },
+  identifyActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 8,
+  },
+  cancelButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  cancelText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  confirmButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+    backgroundColor: '#1E88E5',
+  },
+  confirmButtonDisabled: {
+    backgroundColor: '#94A3B8',
+  },
+  confirmText: {
+    fontSize: 13,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
 });
