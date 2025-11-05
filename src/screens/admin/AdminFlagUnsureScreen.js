@@ -13,6 +13,7 @@ const MOCK_FLAGGED = [
     submitted_at: '2025-10-12T10:12:00Z',
     location: 'Gunung Mulu, Sarawak',
     photo: require('../../../assets/pitcher.jpg'),
+    is_endangered: true,
   },
   {
     observation_id: 'OBS-2987',
@@ -22,6 +23,7 @@ const MOCK_FLAGGED = [
     submitted_at: '2025-10-09T08:45:00Z',
     location: 'Mount Kinabalu, Sabah',
     photo: require('../../../assets/rafflesia.jpg'),
+    is_endangered: true,
   },
   {
     observation_id: 'OBS-2979',
@@ -31,6 +33,7 @@ const MOCK_FLAGGED = [
     submitted_at: '2025-10-08T16:20:00Z',
     location: 'Fraser\'s Hill, Pahang',
     photo: require('../../../assets/pitcher.jpg'),
+    is_endangered: true,
   },
 ];
 

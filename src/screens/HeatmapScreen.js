@@ -20,12 +20,12 @@ const mockObservations = [
   {
     observation_id: 1,
     user: { username: "Ali" },
-    species: {
-      common_name: "Borneo Pitcher Plant",
-      scientific_name: "Nepenthes rajah",
-      is_endangered: 1,
-      image_url: require("../../assets/PlantPin.png"), // 🔹 Local image
-    },
+      species: {
+        common_name: "Borneo Pitcher Plant",
+        scientific_name: "Nepenthes rajah",
+        is_endangered: true,
+        image_url: require("../../assets/PlantPin.png"), // 🔹 Local image
+      },
     photo_url: require("../../assets/pitcher.jpg"), // 🔹 Local image for observation
     location_latitude: 1.5536,
     location_longitude: 110.3593,
@@ -39,7 +39,7 @@ const mockObservations = [
     species: {
       common_name: "Rafflesia",
       scientific_name: "Rafflesia arnoldii",
-      is_endangered: 1,
+        is_endangered: true,
       image_url: require("../../assets/PlantPin.png"), //image: generic reference image of a species
     },
     photo_url: require("../../assets/rafflesia.jpg"),  //photo:actual photo uploaded by user for a specific sighting
@@ -55,7 +55,7 @@ const mockObservations = [
     species: {
       common_name: "Wild Orchid",
       scientific_name: "Dendrobium anosmum",
-      is_endangered: 0,
+        is_endangered: false,
       image_url: require("../../assets/PlantPin.png"), 
     },
     photo_url: require("../../assets/orchid.jpg"), 

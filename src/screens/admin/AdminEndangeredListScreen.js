@@ -4,21 +4,21 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 
 const MOCK_ENDANGERED_SPECIES = [
-  { observation_id: 'OBS-3011', species_name: 'Rafflesia arnoldii', location: 'Bako National Park', status: 'Critical', confidence: 35, is_masked: false },
-  { observation_id: 'OBS-2987', species_name: 'Nepenthes rajah', location: 'Santubong Forest Reserve', status: 'High Priority', confidence: 62, is_masked: true },
-  { observation_id: 'OBS-2944', species_name: 'Nepenthes lowii', location: 'Mount Kinabalu', status: 'High Priority', confidence: 58, is_masked: false },
-  { observation_id: 'OBS-2921', species_name: 'Vanda coerulea', location: 'Crocker Range Park', status: 'Observation', confidence: 44, is_masked: false },
-  { observation_id: 'OBS-2899', species_name: 'Dendrobium anosmum', location: 'Semenggoh Nature Reserve', status: 'Monitoring', confidence: 81, is_masked: false },
-  { observation_id: 'OBS-2885', species_name: 'Nepenthes villosa', location: 'Tambuyukon', status: 'Critical', confidence: 29, is_masked: true },
-  { observation_id: 'OBS-2850', species_name: 'Paphiopedilum rothchildianum', location: 'Mount Kinabalu', status: 'High Priority', confidence: 55, is_masked: false },
-  { observation_id: 'OBS-2833', species_name: 'Rafflesia keithii', location: 'Poring Hot Springs', status: 'Observation', confidence: 48, is_masked: false },
-  { observation_id: 'OBS-2799', species_name: 'Nepenthes bicalcarata', location: 'Gunung Mulu', status: 'Monitoring', confidence: 66, is_masked: false },
-  { observation_id: 'OBS-2764', species_name: 'Dipterocarpus sarawakensis', location: 'Lambir Hills', status: 'Monitoring', confidence: 72, is_masked: false },
-  { observation_id: 'OBS-2720', species_name: 'Hopea beccariana', location: 'Batang Ai National Park', status: 'Observation', confidence: 38, is_masked: false },
-  { observation_id: 'OBS-2698', species_name: 'Nepenthes truncata', location: 'Danum Valley', status: 'High Priority', confidence: 63, is_masked: false },
-  { observation_id: 'OBS-2665', species_name: 'Anoectochilus sandvicensis', location: 'Kubah National Park', status: 'Monitoring', confidence: 74, is_masked: false },
-  { observation_id: 'OBS-2642', species_name: 'Rhododendron durionifolium', location: 'Gunung Silam', status: 'Observation', confidence: 52, is_masked: false },
-  { observation_id: 'OBS-2610', species_name: 'Nepenthes clipeata', location: 'Mount Kelam', status: 'Critical', confidence: 31, is_masked: true },
+  { observation_id: 'OBS-3011', species_name: 'Rafflesia arnoldii', location: 'Bako National Park', is_masked: false },
+  { observation_id: 'OBS-2987', species_name: 'Nepenthes rajah', location: 'Santubong Forest Reserve', is_masked: true },
+  { observation_id: 'OBS-2944', species_name: 'Nepenthes lowii', location: 'Mount Kinabalu', is_masked: false },
+  { observation_id: 'OBS-2921', species_name: 'Vanda coerulea', location: 'Crocker Range Park', is_masked: false },
+  { observation_id: 'OBS-2899', species_name: 'Dendrobium anosmum', location: 'Semenggoh Nature Reserve', is_masked: false },
+  { observation_id: 'OBS-2885', species_name: 'Nepenthes villosa', location: 'Tambuyukon', is_masked: true },
+  { observation_id: 'OBS-2850', species_name: 'Paphiopedilum rothchildianum', location: 'Mount Kinabalu', is_masked: false },
+  { observation_id: 'OBS-2833', species_name: 'Rafflesia keithii', location: 'Poring Hot Springs', is_masked: false },
+  { observation_id: 'OBS-2799', species_name: 'Nepenthes bicalcarata', location: 'Gunung Mulu', is_masked: false },
+  { observation_id: 'OBS-2764', species_name: 'Dipterocarpus sarawakensis', location: 'Lambir Hills', is_masked: false },
+  { observation_id: 'OBS-2720', species_name: 'Hopea beccariana', location: 'Batang Ai National Park', is_masked: false },
+  { observation_id: 'OBS-2698', species_name: 'Nepenthes truncata', location: 'Danum Valley', is_masked: false },
+  { observation_id: 'OBS-2665', species_name: 'Anoectochilus sandvicensis', location: 'Kubah National Park', is_masked: false },
+  { observation_id: 'OBS-2642', species_name: 'Rhododendron durionifolium', location: 'Gunung Silam', is_masked: false },
+  { observation_id: 'OBS-2610', species_name: 'Nepenthes clipeata', location: 'Mount Kelam', is_masked: true },
 ];
 
 export default function AdminEndangeredListScreen() {
