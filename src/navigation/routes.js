@@ -7,3 +7,4 @@ export const ADMIN_ROOT = 'AdminDashboard';
 export const ADMIN_USERS = 'AdminUsers';
 export const ADMIN_FLAG_UNSURE = 'AdminFlagUnsure';
 export const ADMIN_HEATMAP = 'AdminHeatmap';
+export const ADMIN_ENDANGERED = 'AdminEndangeredList';

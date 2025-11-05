@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Platform } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, Heatmap } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
@@ -55,6 +56,7 @@ const mockAdminObservations = [
 export default function AdminHeatmapScreen() {
   const [observations, setObservations] = useState(mockAdminObservations);
   const [viewMode, setViewMode] = useState('heatmap');
+  const navigation = useNavigation();
 
   const endangeredList = useMemo(
     () => observations.filter((obs) => obs.species.is_endangered),
@@ -83,11 +85,13 @@ export default function AdminHeatmapScreen() {
     );
   };
 
+  const HEATMAP_RADIUS = Platform.OS === 'android' ? 40 : 60;
+
   return (
-    <SafeAreaView style={styles.container}>
+  <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Sensitive Species Heatmap</Text>
-        <View style={styles.headerActions}>
+        <Text style={styles.headerTitle}>Species Heatmap</Text>
+        <View style={styles.modeRow}>
           <TouchableOpacity
             onPress={() => setViewMode('heatmap')}
             style={[styles.modeButton, viewMode === 'heatmap' && styles.modeButtonActive]}
@@ -114,17 +118,17 @@ export default function AdminHeatmapScreen() {
           longitudeDelta: 0.3,
         }}
       >
-        {viewMode === 'heatmap' && (
-          <Heatmap
-            points={points}
-            radius={55}
-            opacity={0.75}
-            gradient={{
-              colors: ['#C2E1FB', '#7EB6F2', '#1F78D1', '#0C4A92'],
-              startPoints: [0.1, 0.4, 0.7, 1],
-              colorMapSize: 256,
-            }}
-          />
+        {viewMode === 'heatmap' && points.length > 0 && (
+            <Heatmap
+              points={points}
+              radius={HEATMAP_RADIUS}
+              opacity={0.7}
+              gradient={{
+                colors: ['#ADFF2F', '#FFFF00', '#FF8C00', '#FF0000'],
+                startPoints: [0.01, 0.25, 0.5, 1],
+                colorMapSize: 256,
+              }}
+            />
         )}
 
         {viewMode === 'markers' &&
@@ -134,13 +138,21 @@ export default function AdminHeatmapScreen() {
               coordinate={{ latitude: obs.location_latitude, longitude: obs.location_longitude }}
               title={obs.species.common_name}
               description={obs.location_name}
-              pinColor={obs.is_masked ? '#9AA6B2' : obs.species.is_endangered ? '#D72638' : '#2E7D32'}
+              pinColor="#1F5E92"
             />
           ))}
       </MapView>
 
       <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Endangered Species Controls</Text>
+        <View style={styles.panelHeader}>
+          <Text style={styles.panelTitle}>Endangered Species Controls</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('AdminEndangeredList')}
+            style={styles.viewAllButton}
+          >
+            <Text style={styles.viewAllText}>View All</Text>
+          </TouchableOpacity>
+        </View>
         <FlatList
           data={endangeredList}
           keyExtractor={(item) => item.observation_id}
@@ -180,15 +192,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 12,
-    backgroundColor: '#FFFFFF',
+      backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E3E8EE',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#0F1C2E' },
-  headerActions: { flexDirection: 'row', gap: 12 },
+  modeRow: {
+    marginTop: 12,
+    flexDirection: 'row',
+    gap: 12,
+  },
   modeButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -214,7 +227,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     elevation: 6,
   },
-  panelTitle: { fontSize: 16, fontWeight: '700', color: '#0F1C2E', marginBottom: 12 },
+  panelTitle: { fontSize: 16, fontWeight: '700', color: '#0F1C2E' },
+  viewAllButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: '#EDF1F5',
+  },
+  viewAllText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
   listItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
