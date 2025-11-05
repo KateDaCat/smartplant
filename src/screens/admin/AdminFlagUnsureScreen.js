@@ -108,12 +108,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2E8F0',
   },
   cell: {
-    flex: 1,
+    flex: 0.9,
     fontSize: 13,
     color: '#334155',
   },
   cellWide: {
-    flex: 1.7,
+    flex: 1.8,
   },
   cellAction: {
     width: 120,
