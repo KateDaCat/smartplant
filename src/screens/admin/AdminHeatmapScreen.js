@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, Heatmap } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
@@ -57,20 +57,26 @@ const mockAdminObservations = [
 export default function AdminHeatmapScreen() {
   const [observations, setObservations] = useState(mockAdminObservations);
   const [viewMode, setViewMode] = useState('heatmap');
-  const [selectedSpeciesId, setSelectedSpeciesId] = useState(null);
+  const [selectedObservationId, setSelectedObservationId] = useState(null);
   const navigation = useNavigation();
+  const route = useRoute();
 
-  const endangeredList = useMemo(
-    () => observations.filter((obs) => obs.species.is_endangered),
-    [observations]
+  const selectedObservation = useMemo(
+    () =>
+      selectedObservationId
+        ? observations.find((obs) => obs.observation_id === selectedObservationId) ?? null
+        : null,
+    [selectedObservationId, observations]
   );
 
   const filteredObservations = useMemo(
     () =>
-      selectedSpeciesId
-        ? observations.filter((obs) => obs.species.species_id === selectedSpeciesId)
+      selectedObservation
+        ? observations.filter(
+            (obs) => obs.species.species_id === selectedObservation.species.species_id
+          )
         : [],
-    [observations, selectedSpeciesId]
+    [observations, selectedObservation]
   );
 
   const points = useMemo(
@@ -94,10 +100,41 @@ export default function AdminHeatmapScreen() {
   };
 
   const HEATMAP_RADIUS = Platform.OS === 'android' ? 40 : 60;
-  const hasSelection = Boolean(selectedSpeciesId);
+  const hasSelection = Boolean(selectedObservation);
   const visibleForUser = hasSelection
     ? filteredObservations.some((obs) => !obs.is_masked)
     : true;
+
+  const incomingObservation = route?.params?.selectedObservation;
+
+  useEffect(() => {
+    if (!incomingObservation) {
+      return;
+    }
+
+    setObservations((prev) => {
+      const existingIndex = prev.findIndex(
+        (obs) => obs.observation_id === incomingObservation.observation_id
+      );
+      if (existingIndex >= 0) {
+        const updated = [...prev];
+        updated[existingIndex] = { ...prev[existingIndex], ...incomingObservation };
+        return updated;
+      }
+      return [...prev, incomingObservation];
+    });
+
+    setSelectedObservationId(incomingObservation.observation_id);
+    setViewMode('heatmap');
+    navigation.setParams({ selectedObservation: undefined });
+  }, [incomingObservation, navigation]);
+
+  const handleChoosePlant = () => {
+    navigation.navigate(ADMIN_ENDANGERED, {
+      origin: 'AdminHeatmap',
+      selectedObservationId,
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -211,56 +248,79 @@ export default function AdminHeatmapScreen() {
           )}
         </View>
 
-      <View style={styles.panel}>
-        <View style={styles.panelHeader}>
-          <Text style={styles.panelTitle}>Endangered Species Controls</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate(ADMIN_ENDANGERED)}
-            style={styles.viewAllButton}
-          >
-            <Text style={styles.viewAllText}>View All</Text>
+        <View style={styles.panel}>
+          <View style={styles.panelHeader}>
+            <Text style={styles.panelTitle}>Endangered Species Controls</Text>
+          </View>
+          <TouchableOpacity style={styles.chooseButton} onPress={handleChoosePlant}>
+            <Ionicons name="leaf-outline" size={16} color="#0F4C81" />
+            <Text style={styles.chooseButtonText}>Choose a plant</Text>
           </TouchableOpacity>
-        </View>
-        <FlatList
-          data={endangeredList}
-          keyExtractor={(item) => item.observation_id}
-            renderItem={({ item }) => {
-              const isSelected = selectedSpeciesId === item.species.species_id;
-              return (
-                <View style={[styles.listItem, isSelected && styles.listItemSelected]}>
-                  <View style={styles.listItemInfo}>
-                    <Text style={styles.speciesName}>{item.species.common_name}</Text>
-                    <Text style={styles.metaText}>Observation {item.observation_id}</Text>
-                    <Text style={styles.metaText}>{item.location_name}</Text>
-                    <Text style={styles.metaText}>Confidence: {(item.confidence_score * 100).toFixed(0)}%</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={[styles.selectButton, isSelected && styles.selectButtonActive]}
-                    onPress={() => setSelectedSpeciesId(isSelected ? null : item.species.species_id)}
-                  >
-                    <Text style={[styles.selectButtonText, isSelected && styles.selectButtonTextActive]}>
-                      Select
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.maskButton, item.is_masked ? styles.masked : styles.unmasked]}
-                    onPress={() => toggleMask(item.observation_id)}
-                  >
-                    <Ionicons
-                      name={item.is_masked ? 'eye-off-outline' : 'eye-outline'}
-                      size={18}
-                      color={item.is_masked ? '#933d27' : '#0F4C81'}
-                    />
-                    <Text style={[styles.maskButtonText, item.is_masked ? styles.maskedText : styles.unmaskedText]}>
-                      {item.is_masked ? 'Masked' : 'Visible'}
-                    </Text>
-                  </TouchableOpacity>
+
+          {selectedObservation ? (
+            <View style={styles.selectedCard}>
+              <View style={styles.selectedCardHeader}>
+                <View>
+                  <Text style={styles.selectedSpecies}>{selectedObservation.species.common_name}</Text>
+                  <Text style={styles.selectedScientific}>{selectedObservation.species.scientific_name}</Text>
                 </View>
-              );
-            }}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
-      </View>
+                <View style={styles.statusPill}>
+                  <Text style={styles.statusPillText}>
+                    {selectedObservation.species.is_endangered ? 'Endangered' : 'Not endangered'}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.cardRow}>
+                <Ionicons name="albums-outline" size={16} color="#5B6C7C" />
+                <Text style={styles.cardRowText}>Observation {selectedObservation.observation_id}</Text>
+              </View>
+              <View style={styles.cardRow}>
+                <Ionicons name="pin-outline" size={16} color="#5B6C7C" />
+                <Text style={styles.cardRowText}>{selectedObservation.location_name}</Text>
+              </View>
+              <View style={styles.cardRow}>
+                <Ionicons name="speedometer-outline" size={16} color="#5B6C7C" />
+                <Text style={styles.cardRowText}>
+                  Confidence {(selectedObservation.confidence_score * 100).toFixed(0)}%
+                </Text>
+              </View>
+              <View style={styles.visibilityRow}>
+                <Ionicons
+                  name={visibleForUser ? 'eye-outline' : 'eye-off-outline'}
+                  size={16}
+                  color={visibleForUser ? '#166534' : '#B91C1C'}
+                />
+                <Text style={styles.visibilityLabel}>
+                  {visibleForUser ? 'Visible to users' : 'Masked from users'}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.maskButton, selectedObservation.is_masked ? styles.masked : styles.unmasked]}
+                onPress={() => toggleMask(selectedObservation.observation_id)}
+              >
+                <Ionicons
+                  name={selectedObservation.is_masked ? 'eye-off-outline' : 'eye-outline'}
+                  size={18}
+                  color={selectedObservation.is_masked ? '#933d27' : '#0F4C81'}
+                />
+                <Text
+                  style={[
+                    styles.maskButtonText,
+                    selectedObservation.is_masked ? styles.maskedText : styles.unmaskedText,
+                  ]}
+                >
+                  {selectedObservation.is_masked ? 'Unmask for users' : 'Mask for users'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <Text style={styles.emptyStateText}>
+              No plant selected yet. Choose a plant to review distribution controls.
+            </Text>
+          )}
+        </View>
     </SafeAreaView>
   );
 }
@@ -343,49 +403,65 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   panelTitle: { fontSize: 16, fontWeight: '700', color: '#0F1C2E' },
-  viewAllButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: '#EDF1F5',
-  },
-  viewAllText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#4B5563',
-  },
-  listItem: {
+  chooseButton: {
+    marginTop: 12,
+    alignSelf: 'flex-start',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
-  },
-  listItemSelected: {
-    backgroundColor: '#F0F6FF',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 16,
-    paddingHorizontal: 12,
-  },
-  listItemInfo: { flex: 1 },
-  speciesName: { fontSize: 15, fontWeight: '600', color: '#0F1C2E' },
-  metaText: { fontSize: 12, color: '#5A6A78', marginTop: 2 },
-  selectButton: {
-    marginRight: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 12,
     backgroundColor: '#E3ECF9',
   },
-  selectButtonActive: {
-    backgroundColor: '#1A54A5',
-  },
-  selectButtonText: {
-    fontSize: 12,
+  chooseButtonText: {
+    fontSize: 13,
     fontWeight: '600',
     color: '#0F4C81',
   },
-  selectButtonTextActive: {
-    color: '#FFFFFF',
+  selectedCard: {
+    marginTop: 16,
+    borderRadius: 18,
+    backgroundColor: '#F8FBFF',
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
+  selectedCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    gap: 12,
+  },
+  selectedSpecies: { fontSize: 16, fontWeight: '700', color: '#0F1C2E' },
+  selectedScientific: { fontSize: 13, color: '#4B5563', marginTop: 2 },
+  statusPill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: '#FEE2E2',
+  },
+  statusPillText: { fontSize: 11, fontWeight: '700', color: '#B91C1C', textTransform: 'uppercase' },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  cardRowText: { fontSize: 13, color: '#374151' },
+  visibilityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingVertical: 6,
+  },
+  visibilityLabel: { fontSize: 12, fontWeight: '600', color: '#1F2937' },
   maskButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -393,11 +469,16 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     gap: 6,
+    marginTop: 14,
   },
   masked: { backgroundColor: '#FBE4DD' },
   unmasked: { backgroundColor: '#E3ECF9' },
   maskButtonText: { fontSize: 12, fontWeight: '600' },
   maskedText: { color: '#933d27' },
   unmaskedText: { color: '#0F4C81' },
-  separator: { height: 1, backgroundColor: '#E8ECF2' },
+  emptyStateText: {
+    marginTop: 16,
+    fontSize: 13,
+    color: '#5B6C7C',
+  },
 });
