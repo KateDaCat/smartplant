@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ADMIN_IOT_DETAIL } from '../../navigation/routes';
 
@@ -9,7 +9,6 @@ const MOCK_IOT_DEVICES = [
     device_id: 'DEV-001',
     device_name: 'Soil Monitor A1',
     species: 'Rafflesia arnoldii',
-    photo: require('../../../assets/rafflesia.jpg'),
     location: {
       latitude: 1.4667,
       longitude: 110.3333,
@@ -27,7 +26,6 @@ const MOCK_IOT_DEVICES = [
     device_id: 'DEV-014',
     device_name: 'Weather Station B3',
     species: 'Nepenthes rajah',
-    photo: require('../../../assets/pitcher.jpg'),
     location: {
       latitude: 1.595,
       longitude: 110.345,
@@ -45,7 +43,6 @@ const MOCK_IOT_DEVICES = [
     device_id: 'DEV-020',
     device_name: 'Trail Camera C2',
     species: 'Dipterocarpus sarawakensis',
-    photo: require('../../../assets/monstera.jpg'),
     location: {
       latitude: 1.285,
       longitude: 110.523,
@@ -61,78 +58,61 @@ const MOCK_IOT_DEVICES = [
   },
 ];
 
+const formatDate = (iso) => {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? iso : date.toLocaleString();
+};
+
 export default function AdminIotScreen() {
   const navigation = useNavigation();
-
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.85}
-      onPress={() => navigation.navigate(ADMIN_IOT_DETAIL, { device: item })}
-    >
-      <View style={styles.cardHeader}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.deviceName}>{item.device_name}</Text>
-          <Text style={styles.deviceMeta}>Device ID: {item.device_id}</Text>
-        </View>
-        <Image source={item.photo} style={styles.photo} />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Plant</Text>
-        <Text style={styles.sectionValue}>{item.species}</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Location</Text>
-        <Text style={styles.sectionValue}>{item.location.name}</Text>
-        <Text style={styles.locationCoords}>
-          {item.location.latitude.toFixed(4)}, {item.location.longitude.toFixed(4)}
-        </Text>
-      </View>
-
-      <Text style={styles.updatedText}>Tap to view sensor readings ?</Text>
-    </TouchableOpacity>
-  );
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.headerTitle}>IoT Sensor Network</Text>
       <Text style={styles.headerSubtitle}>
-        Live environmental data from field sensors. Masking coming soon.
+        Real-time status of field sensors. Tap any row to inspect full analytics.
       </Text>
 
-      <FlatList
-        data={MOCK_IOT_DEVICES}
-        keyExtractor={(item) => item.device_id}
-        contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            activeOpacity={0.85}
-            onPress={() => navigation.navigate(ADMIN_IOT_DETAIL, { device: item })}
-          >
-            <View style={styles.cardHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.deviceName}>{item.species}</Text>
-                <Text style={styles.deviceMeta}>Device {item.device_id} ? {item.device_name}</Text>
+      <View style={styles.table}>
+        <View style={[styles.row, styles.headerRow]}>
+          <Text style={[styles.cellWide, styles.headerText]}>Plant</Text>
+          <Text style={[styles.cell, styles.headerText]}>Device ID</Text>
+          <Text style={[styles.cell, styles.headerText]}>Temp (?C)</Text>
+          <Text style={[styles.cell, styles.headerText]}>Humidity (%)</Text>
+          <Text style={[styles.cell, styles.headerText]}>Soil (%)</Text>
+          <Text style={[styles.cell, styles.headerText]}>Motion</Text>
+          <Text style={[styles.cellAction, styles.headerText]}>Last Update</Text>
+          <Text style={[styles.cellAction, styles.headerText]}>Action</Text>
+        </View>
+
+        <FlatList
+          data={MOCK_IOT_DEVICES}
+          keyExtractor={(item) => item.device_id}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          renderItem={({ item }) => (
+            <View style={styles.row}>
+              <View style={styles.cellWide}>
+                <Text style={styles.plantText}>{item.species}</Text>
+                <Text style={styles.metaText}>{item.location.name}</Text>
               </View>
-              <Image source={item.photo} style={styles.photo} />
+              <Text style={styles.cell}>{item.device_id}</Text>
+              <Text style={styles.cell}>{item.readings.temperature.toFixed(1)}</Text>
+              <Text style={styles.cell}>{item.readings.humidity}%</Text>
+              <Text style={styles.cell}>{item.readings.soil_moisture}%</Text>
+              <Text style={styles.cell}>{item.readings.motion_detected ? 'Detected' : 'None'}</Text>
+              <Text style={styles.cellActionSmall}>{formatDate(item.last_updated)}</Text>
+              <View style={styles.cellAction}>
+                <TouchableOpacity
+                  style={styles.viewButton}
+                  onPress={() => navigation.navigate(ADMIN_IOT_DETAIL, { device: item })}
+                >
+                  <Text style={styles.viewText}>View</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Location</Text>
-              <Text style={styles.sectionValue}>{item.location.name}</Text>
-              <Text style={styles.locationCoords}>
-                {item.location.latitude.toFixed(4)}, {item.location.longitude.toFixed(4)}
-              </Text>
-            </View>
-
-            <Text style={styles.updatedText}>Tap to view sensor readings ?</Text>
-          </TouchableOpacity>
-        )}
-      />
+          )}
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -154,68 +134,68 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 16,
   },
-  listContent: {
-    paddingBottom: 24,
-    gap: 16,
-  },
-  card: {
+  table: {
     backgroundColor: '#FFFFFF',
     borderRadius: 18,
-    padding: 18,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  cardHeader: {
+  row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
-  deviceName: {
-    fontSize: 20,
+  headerRow: {
+    backgroundColor: '#F1F5F9',
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+  },
+  cell: {
+    flex: 1,
+    fontSize: 13,
+    color: '#334155',
+  },
+  cellWide: {
+    flex: 1.5,
+  },
+  cellAction: {
+    width: 110,
+    alignItems: 'flex-end',
+  },
+  cellActionSmall: {
+    width: 140,
+    fontSize: 12,
+    color: '#475569',
+  },
+  headerText: {
     fontWeight: '700',
     color: '#0F172A',
-  },
-  deviceMeta: {
-    marginTop: 4,
-    fontSize: 12,
-    color: '#64748B',
-    letterSpacing: 0.6,
-  },
-  photo: {
-    width: 72,
-    height: 72,
-    borderRadius: 12,
-    marginLeft: 12,
-  },
-  section: {
-    marginTop: 12,
-  },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#4B5563',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
-    marginBottom: 4,
   },
-  sectionValue: {
+  plantText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2A37',
+    color: '#0F172A',
   },
-  locationCoords: {
+  metaText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#64748B',
     marginTop: 2,
   },
-  updatedText: {
-    marginTop: 14,
+  viewButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: '#1E88E5',
+  },
+  viewText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#1E88E5',
+    color: '#FFFFFF',
   },
 });
