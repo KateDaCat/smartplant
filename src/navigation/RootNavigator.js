@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ROOT_TABS, TAB_HOME, TAB_IDENTIFY, ADMIN_ROOT, ADMIN_ENDANGERED, ADMIN_USER_DETAIL, ADMIN_IOT, ADMIN_IOT_DETAIL } from './routes';
+import { ROOT_TABS, TAB_HOME, TAB_IDENTIFY, ADMIN_ROOT, ADMIN_ENDANGERED, ADMIN_USER_DETAIL, ADMIN_IOT, ADMIN_IOT_DETAIL, ADMIN_FLAG_REVIEW } from './routes';
 
 // screens
 import HomeScreen from '../screens/HomeScreen';
@@ -16,6 +16,7 @@ import AdminEndangeredListScreen from '../screens/admin/AdminEndangeredListScree
 import AdminUserDetailScreen from '../screens/admin/AdminUserDetailScreen';
 import AdminIotScreen from '../screens/admin/AdminIotScreen';
 import AdminIotDetailScreen from '../screens/admin/AdminIotDetailScreen';
+import AdminFlagReviewScreen from '../screens/admin/AdminFlagReviewScreen';
 import CameraScreen from '../screens/CameraScreen';
 import PreviewScreen from '../screens/PreviewScreen';
 import ResultScreen from '../screens/ResultScreen';
@@ -158,6 +159,14 @@ export default function RootNavigator() {
           options={{
             headerShown: true,
             headerTitle: 'Device Details',
+          }}
+        />
+        <Stack.Screen
+          name={ADMIN_FLAG_REVIEW}
+          component={AdminFlagReviewScreen}
+          options={{
+            headerShown: true,
+            headerTitle: 'Review Observation',
           }}
         />
         <Stack.Screen

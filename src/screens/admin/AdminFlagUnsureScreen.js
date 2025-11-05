@@ -1,6 +1,8 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { ADMIN_FLAG_REVIEW } from '../../navigation/routes';
 
 const MOCK_FLAGGED = [
   {
@@ -10,6 +12,7 @@ const MOCK_FLAGGED = [
     user: 'field.scout',
     submitted_at: '2025-10-12T10:12:00Z',
     location: 'Gunung Mulu, Sarawak',
+    photo: require('../../../assets/pitcher.jpg'),
   },
   {
     observation_id: 'OBS-2987',
@@ -18,6 +21,7 @@ const MOCK_FLAGGED = [
     user: 'flora.lens',
     submitted_at: '2025-10-09T08:45:00Z',
     location: 'Mount Kinabalu, Sabah',
+    photo: require('../../../assets/rafflesia.jpg'),
   },
   {
     observation_id: 'OBS-2979',
@@ -26,12 +30,15 @@ const MOCK_FLAGGED = [
     user: 'botany.lee',
     submitted_at: '2025-10-08T16:20:00Z',
     location: 'Fraser\'s Hill, Pahang',
+    photo: require('../../../assets/pitcher.jpg'),
   },
 ];
 
 const toPercent = (score) => `${Math.round(score * 100)}%`;
 
 export default function AdminFlagUnsureScreen() {
+  const navigation = useNavigation();
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.headerTitle}>Flag Unsure Queue</Text>
@@ -58,7 +65,10 @@ export default function AdminFlagUnsureScreen() {
               </View>
               <Text style={styles.cell}>{toPercent(item.confidence)}</Text>
               <View style={styles.cellAction}>
-                <TouchableOpacity style={styles.reviewButton}>
+                <TouchableOpacity
+                  style={styles.reviewButton}
+                  onPress={() => navigation.navigate(ADMIN_FLAG_REVIEW, { observation: item })}
+                >
                   <Text style={styles.reviewText}>Review</Text>
                 </TouchableOpacity>
               </View>
