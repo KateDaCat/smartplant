@@ -8,7 +8,8 @@ import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
 import AdminFlagUnsureScreen from '../screens/admin/AdminFlagUnsureScreen';
 import AdminHeatmapScreen from '../screens/admin/AdminHeatmapScreen';
 import AdminEndangeredListScreen from '../screens/admin/AdminEndangeredListScreen';
-import { ADMIN_USERS, ADMIN_FLAG_UNSURE, ADMIN_HEATMAP, ADMIN_ENDANGERED } from './routes';
+import AdminIotScreen from '../screens/admin/AdminIotScreen';
+import { ADMIN_USERS, ADMIN_FLAG_UNSURE, ADMIN_HEATMAP, ADMIN_ENDANGERED, ADMIN_IOT } from './routes';
 
 const Drawer = createDrawerNavigator();
 
@@ -86,6 +87,12 @@ const drawerScreens = [
     label: 'Endangered List',
     icon: 'leaf-outline',
     component: AdminEndangeredListScreen,
+  },
+  {
+    name: ADMIN_IOT,
+    label: 'IoT Monitoring',
+    icon: 'pulse-outline',
+    component: AdminIotScreen,
   },
 ];
 
