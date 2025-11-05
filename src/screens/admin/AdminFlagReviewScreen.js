@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const formatDate = (iso) => {
@@ -81,35 +81,42 @@ export default function AdminFlagReviewScreen({ route, navigation }) {
         </Modal>
         <Modal visible={identifyVisible} transparent animationType="fade">
           <View style={styles.modalOverlay}>
-            <View style={styles.identifyCard}>
-              <Text style={styles.identifyTitle}>Confirm Plant Identity</Text>
-              <Text style={styles.identifyLabel}>Plant Name</Text>
-              <TextInput
-                style={styles.identifyInput}
-                value={identifiedName}
-                onChangeText={setIdentifiedName}
-                placeholder="Enter confirmed plant name"
-                placeholderTextColor="#94A3B8"
-              />
-              <View style={styles.identifyActions}>
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={() => setIdentifyVisible(false)}
-                >
-                  <Text style={styles.cancelText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.confirmButton, !identifiedName && styles.confirmButtonDisabled]}
-                  disabled={!identifiedName}
-                  onPress={() => {
-                    Alert.alert('Identified', `Recorded as ${identifiedName}.`);
-                    setIdentifyVisible(false);
-                  }}
-                >
-                  <Text style={styles.confirmText}>Save</Text>
-                </TouchableOpacity>
+            <KeyboardAvoidingView
+              behavior={Platform.select({ ios: 'padding', android: 'height' })}
+              style={styles.identifyWrapper}
+            >
+              <View style={styles.identifyCard}>
+                <Text style={styles.identifyTitle}>Confirm Plant Identity</Text>
+                <Text style={styles.identifyLabel}>Plant Name</Text>
+                <TextInput
+                  style={styles.identifyInput}
+                  value={identifiedName}
+                  onChangeText={setIdentifiedName}
+                  placeholder="Enter confirmed plant name"
+                  placeholderTextColor="#94A3B8"
+                  autoFocus
+                  returnKeyType="done"
+                />
+                <View style={styles.identifyActions}>
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setIdentifyVisible(false)}
+                  >
+                    <Text style={styles.cancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.confirmButton, !identifiedName && styles.confirmButtonDisabled]}
+                    disabled={!identifiedName}
+                    onPress={() => {
+                      Alert.alert('Identified', `Recorded as ${identifiedName}.`);
+                      setIdentifyVisible(false);
+                    }}
+                  >
+                    <Text style={styles.confirmText}>Save</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
+            </KeyboardAvoidingView>
           </View>
         </Modal>
       </ScrollView>
@@ -225,6 +232,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+  identifyWrapper: {
+    width: '100%',
+    alignItems: 'center',
   },
   modalCloseArea: {
     position: 'absolute',
