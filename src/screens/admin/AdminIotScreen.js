@@ -10,15 +10,7 @@ const MOCK_IOT_DEVICES = [
     device_name: 'Soil Monitor A1',
     species: 'Rafflesia arnoldii',
     location: {
-      latitude: 1.4667,
-      longitude: 110.3333,
       name: 'Bako National Park',
-    },
-    readings: {
-      temperature: 28.4,
-      humidity: 78,
-      soil_moisture: 42,
-      motion_detected: false,
     },
     last_updated: '2025-10-21T12:45:00Z',
   },
@@ -27,15 +19,7 @@ const MOCK_IOT_DEVICES = [
     device_name: 'Weather Station B3',
     species: 'Nepenthes rajah',
     location: {
-      latitude: 1.595,
-      longitude: 110.345,
       name: 'Santubong Forest Reserve',
-    },
-    readings: {
-      temperature: 24.9,
-      humidity: 91,
-      soil_moisture: 65,
-      motion_detected: true,
     },
     last_updated: '2025-10-21T12:41:00Z',
   },
@@ -44,15 +28,7 @@ const MOCK_IOT_DEVICES = [
     device_name: 'Trail Camera C2',
     species: 'Dipterocarpus sarawakensis',
     location: {
-      latitude: 1.285,
-      longitude: 110.523,
       name: 'Lambir Hills',
-    },
-    readings: {
-      temperature: 26.8,
-      humidity: 84,
-      soil_moisture: 55,
-      motion_detected: false,
     },
     last_updated: '2025-10-21T12:36:00Z',
   },
@@ -68,20 +44,16 @@ export default function AdminIotScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.headerTitle}>IoT Sensor Network</Text>
+      <Text style={styles.headerTitle}>IoT Monitoring</Text>
       <Text style={styles.headerSubtitle}>
-        Real-time status of field sensors. Tap any row to inspect full analytics.
+        Overview of active sensors in the field. Tap `View` to drill into analytics.
       </Text>
 
       <View style={styles.table}>
         <View style={[styles.row, styles.headerRow]}>
           <Text style={[styles.cellWide, styles.headerText]}>Plant</Text>
           <Text style={[styles.cell, styles.headerText]}>Device ID</Text>
-          <Text style={[styles.cell, styles.headerText]}>Temp (?C)</Text>
-          <Text style={[styles.cell, styles.headerText]}>Humidity (%)</Text>
-          <Text style={[styles.cell, styles.headerText]}>Soil (%)</Text>
-          <Text style={[styles.cell, styles.headerText]}>Motion</Text>
-          <Text style={[styles.cellAction, styles.headerText]}>Last Update</Text>
+          <Text style={[styles.cellActionSmall, styles.headerText]}>Last Update</Text>
           <Text style={[styles.cellAction, styles.headerText]}>Action</Text>
         </View>
 
@@ -96,10 +68,6 @@ export default function AdminIotScreen() {
                 <Text style={styles.metaText}>{item.location.name}</Text>
               </View>
               <Text style={styles.cell}>{item.device_id}</Text>
-              <Text style={styles.cell}>{item.readings.temperature.toFixed(1)}</Text>
-              <Text style={styles.cell}>{item.readings.humidity}%</Text>
-              <Text style={styles.cell}>{item.readings.soil_moisture}%</Text>
-              <Text style={styles.cell}>{item.readings.motion_detected ? 'Detected' : 'None'}</Text>
               <Text style={styles.cellActionSmall}>{formatDate(item.last_updated)}</Text>
               <View style={styles.cellAction}>
                 <TouchableOpacity
@@ -167,7 +135,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   cellActionSmall: {
-    width: 140,
+    width: 160,
     fontSize: 12,
     color: '#475569',
   },
