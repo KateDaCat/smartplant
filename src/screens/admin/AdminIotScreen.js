@@ -9,19 +9,52 @@ const MOCK_IOT_DEVICES = [
     device_id: 'DEV-001',
     device_name: 'Soil Monitor A1',
     species: 'Rafflesia arnoldii',
-    location: 'Bako National Park',
+    location: {
+      name: 'Bako National Park',
+      latitude: 1.4667,
+      longitude: 110.3333,
+    },
+    readings: {
+      temperature: 28.4,
+      humidity: 78,
+      soil_moisture: 42,
+      motion_detected: false,
+    },
+    last_updated: '2025-10-21T12:45:00Z',
   },
   {
     device_id: 'DEV-014',
     device_name: 'Weather Station B3',
     species: 'Nepenthes rajah',
-    location: 'Santubong Forest Reserve',
+    location: {
+      name: 'Santubong Forest Reserve',
+      latitude: 1.595,
+      longitude: 110.345,
+    },
+    readings: {
+      temperature: 24.9,
+      humidity: 91,
+      soil_moisture: 65,
+      motion_detected: true,
+    },
+    last_updated: '2025-10-21T12:41:00Z',
   },
   {
     device_id: 'DEV-020',
     device_name: 'Trail Camera C2',
     species: 'Dipterocarpus sarawakensis',
-    location: 'Lambir Hills',
+    location: {
+      name: 'Lambir Hills',
+      latitude: 1.285,
+      longitude: 110.523,
+    },
+    readings: {
+      temperature: 26.8,
+      humidity: 84,
+      soil_moisture: 55,
+      motion_detected: false,
+    },
+    last_updated: '2025-10-21T12:36:00Z',
   },
 ];
 
@@ -50,7 +83,7 @@ export default function AdminIotScreen() {
             <View style={styles.row}>
               <View style={styles.cellWide}>
                 <Text style={styles.plantText}>{item.species}</Text>
-                <Text style={styles.metaText}>{item.location}</Text>
+                <Text style={styles.metaText}>{item.location.name}</Text>
               </View>
               <Text style={styles.cell}>{item.device_id}</Text>
               <View style={styles.cellAction}>
