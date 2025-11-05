@@ -107,7 +107,31 @@ export default function AdminIotScreen() {
         keyExtractor={(item) => item.device_id}
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-        renderItem={renderItem}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.card}
+            activeOpacity={0.85}
+            onPress={() => navigation.navigate(ADMIN_IOT_DETAIL, { device: item })}
+          >
+            <View style={styles.cardHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.deviceName}>{item.species}</Text>
+                <Text style={styles.deviceMeta}>Device {item.device_id} ? {item.device_name}</Text>
+              </View>
+              <Image source={item.photo} style={styles.photo} />
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>Location</Text>
+              <Text style={styles.sectionValue}>{item.location.name}</Text>
+              <Text style={styles.locationCoords}>
+                {item.location.latitude.toFixed(4)}, {item.location.longitude.toFixed(4)}
+              </Text>
+            </View>
+
+            <Text style={styles.updatedText}>Tap to view sensor readings ?</Text>
+          </TouchableOpacity>
+        )}
       />
     </SafeAreaView>
   );
@@ -151,15 +175,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   deviceName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#0F172A',
   },
   deviceMeta: {
-    marginTop: 2,
+    marginTop: 4,
     fontSize: 12,
     color: '#64748B',
-    textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   photo: {
