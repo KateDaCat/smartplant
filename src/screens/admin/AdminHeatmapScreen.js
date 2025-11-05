@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Platform } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, Heatmap } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,10 +16,10 @@ const mockAdminObservations = [
       scientific_name: 'Rafflesia arnoldii',
       is_endangered: true,
     },
-    location_latitude: 1.6667,
-    location_longitude: 110.4667,
+    location_latitude: 1.4667,
+    location_longitude: 110.3333,
     location_name: 'Bako National Park',
-    confidence_score: 0.74,
+    confidence_score: 0.35,
     is_masked: false,
   },
   {
@@ -31,160 +31,25 @@ const mockAdminObservations = [
       scientific_name: 'Nepenthes rajah',
       is_endangered: true,
     },
-    location_latitude: 1.7672,
-    location_longitude: 110.3336,
+    location_latitude: 1.595,
+    location_longitude: 110.345,
     location_name: 'Santubong Forest Reserve',
-    confidence_score: 0.68,
+    confidence_score: 0.62,
     is_masked: true,
   },
   {
-    observation_id: 'OBS-2944',
-    user_id: 63,
-    species: {
-      species_id: 12,
-      common_name: 'Nepenthes lowii',
-      scientific_name: 'Nepenthes lowii',
-      is_endangered: true,
-    },
-    location_latitude: 6.075,
-    location_longitude: 116.5588,
-    location_name: 'Mount Kinabalu',
-    confidence_score: 0.61,
-    is_masked: false,
-  },
-  {
-    observation_id: 'OBS-2921',
-    user_id: 74,
-    species: {
-      species_id: 16,
-      common_name: 'Vanda coerulea',
-      scientific_name: 'Vanda coerulea',
-      is_endangered: true,
-    },
-    location_latitude: 5.381,
-    location_longitude: 116.1159,
-    location_name: 'Crocker Range Park',
-    confidence_score: 0.57,
-    is_masked: false,
-  },
-  {
-    observation_id: 'OBS-2899',
+    observation_id: 'OBS-2860',
     user_id: 17,
     species: {
       species_id: 14,
       common_name: 'Dendrobium anosmum',
       scientific_name: 'Dendrobium anosmum',
-      is_endangered: true,
+      is_endangered: false,
     },
-    location_latitude: 1.353,
-    location_longitude: 110.315,
+    location_latitude: 1.522,
+    location_longitude: 110.365,
     location_name: 'Semenggoh Nature Reserve',
     confidence_score: 0.81,
-    is_masked: false,
-  },
-  {
-    observation_id: 'OBS-2885',
-    user_id: 91,
-    species: {
-      species_id: 21,
-      common_name: 'Nepenthes villosa',
-      scientific_name: 'Nepenthes villosa',
-      is_endangered: true,
-    },
-    location_latitude: 6.258,
-    location_longitude: 116.658,
-    location_name: 'Tambuyukon',
-    confidence_score: 0.65,
-    is_masked: true,
-  },
-  {
-    observation_id: 'OBS-2850',
-    user_id: 102,
-    species: {
-      species_id: 24,
-      common_name: 'Paphiopedilum rothchildianum',
-      scientific_name: 'Paphiopedilum rothchildianum',
-      is_endangered: true,
-    },
-    location_latitude: 6.05,
-    location_longitude: 116.6667,
-    location_name: 'Mount Kinabalu',
-    confidence_score: 0.54,
-    is_masked: false,
-  },
-  {
-    observation_id: 'OBS-2833',
-    user_id: 118,
-    species: {
-      species_id: 28,
-      common_name: 'Rafflesia keithii',
-      scientific_name: 'Rafflesia keithii',
-      is_endangered: true,
-    },
-    location_latitude: 6.05,
-    location_longitude: 116.682,
-    location_name: 'Poring Hot Springs',
-    confidence_score: 0.6,
-    is_masked: false,
-  },
-  {
-    observation_id: 'OBS-2799',
-    user_id: 133,
-    species: {
-      species_id: 33,
-      common_name: 'Nepenthes bicalcarata',
-      scientific_name: 'Nepenthes bicalcarata',
-      is_endangered: true,
-    },
-    location_latitude: 4.05,
-    location_longitude: 114.8,
-    location_name: 'Gunung Mulu',
-    confidence_score: 0.73,
-    is_masked: false,
-  },
-  {
-    observation_id: 'OBS-2764',
-    user_id: 144,
-    species: {
-      species_id: 37,
-      common_name: 'Dipterocarpus sarawakensis',
-      scientific_name: 'Dipterocarpus sarawakensis',
-      is_endangered: true,
-    },
-    location_latitude: 4.2,
-    location_longitude: 114.03,
-    location_name: 'Lambir Hills',
-    confidence_score: 0.66,
-    is_masked: false,
-  },
-  {
-    observation_id: 'OBS-2720',
-    user_id: 155,
-    species: {
-      species_id: 40,
-      common_name: 'Hopea beccariana',
-      scientific_name: 'Hopea beccariana',
-      is_endangered: true,
-    },
-    location_latitude: 1.2,
-    location_longitude: 111.9,
-    location_name: 'Batang Ai National Park',
-    confidence_score: 0.49,
-    is_masked: false,
-  },
-  {
-    observation_id: 'OBS-2698',
-    user_id: 166,
-    species: {
-      species_id: 44,
-      common_name: 'Nepenthes truncata',
-      scientific_name: 'Nepenthes truncata',
-      is_endangered: true,
-    },
-    location_latitude: 4.93,
-    location_longitude: 117.75,
-    location_name: 'Danum Valley',
-    confidence_score: 0.58,
     is_masked: false,
   },
 ];
@@ -193,24 +58,12 @@ export default function AdminHeatmapScreen() {
   const [observations, setObservations] = useState(mockAdminObservations);
   const [viewMode, setViewMode] = useState('heatmap');
   const [selectedSpeciesId, setSelectedSpeciesId] = useState(null);
-  const [focusedObservationId, setFocusedObservationId] = useState(null);
   const navigation = useNavigation();
-  const route = useRoute();
-  const mapRef = useRef(null);
 
-  const endangeredList = useMemo(() => {
-    const endangered = observations.filter((obs) => obs.species.is_endangered);
-    if (!selectedSpeciesId) {
-      return endangered;
-    }
-    return endangered
-      .slice()
-      .sort((a, b) => {
-        if (a.species.species_id === selectedSpeciesId) return -1;
-        if (b.species.species_id === selectedSpeciesId) return 1;
-        return 0;
-      });
-  }, [observations, selectedSpeciesId]);
+  const endangeredList = useMemo(
+    () => observations.filter((obs) => obs.species.is_endangered),
+    [observations]
+  );
 
   const filteredObservations = useMemo(
     () =>
@@ -245,42 +98,6 @@ export default function AdminHeatmapScreen() {
   const visibleForUser = hasSelection
     ? filteredObservations.some((obs) => !obs.is_masked)
     : true;
-
-  const routeSelectedSpeciesId = route?.params?.selectedSpeciesId;
-  const routeFocusObservationId = route?.params?.focusObservationId;
-
-  useEffect(() => {
-    if (routeSelectedSpeciesId && routeSelectedSpeciesId !== selectedSpeciesId) {
-      setSelectedSpeciesId(routeSelectedSpeciesId);
-      setFocusedObservationId(routeFocusObservationId ?? null);
-      setViewMode('heatmap');
-    } else if (!routeSelectedSpeciesId && routeFocusObservationId) {
-      setFocusedObservationId(routeFocusObservationId);
-    }
-  }, [routeSelectedSpeciesId, routeFocusObservationId, selectedSpeciesId]);
-
-  useEffect(() => {
-    if (!hasSelection || filteredObservations.length === 0 || !mapRef.current) {
-      return;
-    }
-
-    const targetObservation =
-      (focusedObservationId &&
-        filteredObservations.find((obs) => obs.observation_id === focusedObservationId)) ||
-      filteredObservations[0];
-
-    if (targetObservation) {
-      mapRef.current.animateToRegion(
-        {
-          latitude: targetObservation.location_latitude,
-          longitude: targetObservation.location_longitude,
-          latitudeDelta: 0.25,
-          longitudeDelta: 0.25,
-        },
-        600
-      );
-    }
-  }, [hasSelection, filteredObservations, focusedObservationId]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -342,13 +159,12 @@ export default function AdminHeatmapScreen() {
 
         <View style={styles.mapWrapper}>
           <MapView
-            ref={mapRef}
             style={styles.map}
             initialRegion={{
-            latitude: 2.5,
-            longitude: 113.5,
-            latitudeDelta: 12,
-            longitudeDelta: 12,
+              latitude: 1.55,
+              longitude: 110.35,
+              latitudeDelta: 0.3,
+              longitudeDelta: 0.3,
             }}
           >
             {hasSelection && viewMode === 'heatmap' && points.length > 0 && (
@@ -420,16 +236,7 @@ export default function AdminHeatmapScreen() {
                   </View>
                   <TouchableOpacity
                     style={[styles.selectButton, isSelected && styles.selectButtonActive]}
-                  onPress={() => {
-                    if (isSelected) {
-                      setSelectedSpeciesId(null);
-                      setFocusedObservationId(null);
-                    } else {
-                      setSelectedSpeciesId(item.species.species_id);
-                      setFocusedObservationId(item.observation_id);
-                      setViewMode('heatmap');
-                    }
-                  }}
+                    onPress={() => setSelectedSpeciesId(isSelected ? null : item.species.species_id)}
                   >
                     <Text style={[styles.selectButtonText, isSelected && styles.selectButtonTextActive]}>
                       Select
