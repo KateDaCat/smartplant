@@ -1,6 +1,8 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { ADMIN_IOT_DETAIL } from '../../navigation/routes';
 
 const MOCK_IOT_DEVICES = [
   {
@@ -59,19 +61,40 @@ const MOCK_IOT_DEVICES = [
   },
 ];
 
-const formatDate = (iso) => {
-  const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? iso : date.toLocaleString();
-};
-
-const SensorRow = ({ label, value, unit }) => (
-  <View style={styles.sensorRow}>
-    <Text style={styles.sensorLabel}>{label}</Text>
-    <Text style={styles.sensorValue}>{value}{unit}</Text>
-  </View>
-);
-
 export default function AdminIotScreen() {
+  const navigation = useNavigation();
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.85}
+      onPress={() => navigation.navigate(ADMIN_IOT_DETAIL, { device: item })}
+    >
+      <View style={styles.cardHeader}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.deviceName}>{item.device_name}</Text>
+          <Text style={styles.deviceMeta}>Device ID: {item.device_id}</Text>
+        </View>
+        <Image source={item.photo} style={styles.photo} />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>Plant</Text>
+        <Text style={styles.sectionValue}>{item.species}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>Location</Text>
+        <Text style={styles.sectionValue}>{item.location.name}</Text>
+        <Text style={styles.locationCoords}>
+          {item.location.latitude.toFixed(4)}, {item.location.longitude.toFixed(4)}
+        </Text>
+      </View>
+
+      <Text style={styles.updatedText}>Tap to view sensor readings ?</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.headerTitle}>IoT Sensor Network</Text>
@@ -84,44 +107,7 @@ export default function AdminIotScreen() {
         keyExtractor={(item) => item.device_id}
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.deviceName}>{item.device_name}</Text>
-                <Text style={styles.deviceMeta}>Device ID: {item.device_id}</Text>
-              </View>
-              <Image source={item.photo} style={styles.photo} />
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Species</Text>
-              <Text style={styles.sectionValue}>{item.species}</Text>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Location</Text>
-              <Text style={styles.sectionValue}>{item.location.name}</Text>
-              <Text style={styles.locationCoords}>
-                {item.location.latitude.toFixed(4)}, {item.location.longitude.toFixed(4)}
-              </Text>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Sensor Readings</Text>
-              <SensorRow label="Temperature" value={item.readings.temperature} unit="?C" />
-              <SensorRow label="Humidity" value={item.readings.humidity} unit="%" />
-              <SensorRow label="Soil Moisture" value={item.readings.soil_moisture} unit="%" />
-              <SensorRow
-                label="Motion"
-                value={item.readings.motion_detected ? 'Detected' : 'None'}
-                unit=""
-              />
-            </View>
-
-            <Text style={styles.updatedText}>Last updated {formatDate(item.last_updated)}</Text>
-          </View>
-        )}
+        renderItem={renderItem}
       />
     </SafeAreaView>
   );
@@ -203,23 +189,10 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 2,
   },
-  sensorRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 6,
-  },
-  sensorLabel: {
-    fontSize: 13,
-    color: '#475569',
-  },
-  sensorValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
   updatedText: {
     marginTop: 14,
     fontSize: 12,
-    color: '#64748B',
+    fontWeight: '600',
+    color: '#1E88E5',
   },
 });

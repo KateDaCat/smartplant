@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ROOT_TABS, TAB_HOME, TAB_IDENTIFY, ADMIN_ROOT, ADMIN_ENDANGERED, ADMIN_USER_DETAIL, ADMIN_IOT } from './routes';
+import { ROOT_TABS, TAB_HOME, TAB_IDENTIFY, ADMIN_ROOT, ADMIN_ENDANGERED, ADMIN_USER_DETAIL, ADMIN_IOT, ADMIN_IOT_DETAIL } from './routes';
 
 // screens
 import HomeScreen from '../screens/HomeScreen';
@@ -15,6 +15,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import AdminEndangeredListScreen from '../screens/admin/AdminEndangeredListScreen';
 import AdminUserDetailScreen from '../screens/admin/AdminUserDetailScreen';
 import AdminIotScreen from '../screens/admin/AdminIotScreen';
+import AdminIotDetailScreen from '../screens/admin/AdminIotDetailScreen';
 import CameraScreen from '../screens/CameraScreen';
 import PreviewScreen from '../screens/PreviewScreen';
 import ResultScreen from '../screens/ResultScreen';
@@ -149,6 +150,14 @@ export default function RootNavigator() {
           options={{
             headerShown: true,
             headerTitle: 'IoT Monitoring',
+          }}
+        />
+        <Stack.Screen
+          name={ADMIN_IOT_DETAIL}
+          component={AdminIotDetailScreen}
+          options={{
+            headerShown: true,
+            headerTitle: 'Device Details',
           }}
         />
         <Stack.Screen

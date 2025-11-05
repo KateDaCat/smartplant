@@ -10,3 +10,4 @@ export const ADMIN_HEATMAP = 'AdminHeatmap';
 export const ADMIN_ENDANGERED = 'AdminEndangeredList';
 export const ADMIN_USER_DETAIL = 'AdminUserDetail';
 export const ADMIN_IOT = 'AdminIot';
+export const ADMIN_IOT_DETAIL = 'AdminIotDetail';
