@@ -239,7 +239,7 @@ export default function AdminHeatmapScreen() {
                     onPress={() => setSelectedSpeciesId(isSelected ? null : item.species.species_id)}
                   >
                     <Text style={[styles.selectButtonText, isSelected && styles.selectButtonTextActive]}>
-                      {isSelected ? 'Selected' : 'Select'}
+                      Select
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E3ECF9',
   },
   selectButtonActive: {
-    backgroundColor: '#CFE0F5',
+    backgroundColor: '#1A54A5',
   },
   selectButtonText: {
     fontSize: 12,
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     color: '#0F4C81',
   },
   selectButtonTextActive: {
-    color: '#0A3460',
+    color: '#FFFFFF',
   },
   maskButton: {
     flexDirection: 'row',
