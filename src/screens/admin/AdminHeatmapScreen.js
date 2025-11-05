@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, Heatmap } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
+import { ADMIN_ENDANGERED } from '../../navigation/routes';
 
 const mockAdminObservations = [
   {
@@ -147,7 +148,7 @@ export default function AdminHeatmapScreen() {
         <View style={styles.panelHeader}>
           <Text style={styles.panelTitle}>Endangered Species Controls</Text>
           <TouchableOpacity
-            onPress={() => navigation.navigate('AdminEndangeredList')}
+            onPress={() => navigation.navigate(ADMIN_ENDANGERED)}
             style={styles.viewAllButton}
           >
             <Text style={styles.viewAllText}>View All</Text>
