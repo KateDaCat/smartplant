@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal } from 'react-native';
 
 const formatDate = (iso) => {
   const date = new Date(iso);
@@ -9,6 +9,7 @@ const formatDate = (iso) => {
 
 export default function AdminFlagReviewScreen({ route, navigation }) {
   const observation = route?.params?.observation;
+  const [showImage, setShowImage] = useState(false);
 
   if (!observation) {
     return (
@@ -21,7 +22,9 @@ export default function AdminFlagReviewScreen({ route, navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Image source={observation.photo} style={styles.photo} />
+        <TouchableOpacity activeOpacity={0.9} onPress={() => setShowImage(true)}>
+          <Image source={observation.photo} style={styles.photo} />
+        </TouchableOpacity>
 
         <Text style={styles.title}>{observation.plant_name}</Text>
         <Text style={styles.subtitle}>Observation {observation.observation_id}</Text>
@@ -53,6 +56,15 @@ export default function AdminFlagReviewScreen({ route, navigation }) {
             <Text style={styles.identifyText}>Identify</Text>
           </TouchableOpacity>
         </View>
+        <Modal visible={showImage} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <TouchableOpacity style={styles.modalCloseArea} onPress={() => setShowImage(false)} />
+            <Image source={observation.photo} style={styles.modalImage} resizeMode="contain" />
+            <TouchableOpacity style={styles.modalDismiss} onPress={() => setShowImage(false)}>
+              <Text style={styles.modalDismissText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
@@ -148,5 +160,36 @@ const styles = StyleSheet.create({
     color: '#B91C1C',
     textAlign: 'center',
     marginTop: 40,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalCloseArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  modalImage: {
+    width: '100%',
+    height: '70%',
+    borderRadius: 12,
+  },
+  modalDismiss: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    backgroundColor: '#1E88E5',
+    borderRadius: 999,
+  },
+  modalDismissText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
