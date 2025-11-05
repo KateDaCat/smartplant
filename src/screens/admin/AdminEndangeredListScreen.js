@@ -188,8 +188,6 @@ const MOCK_ENDANGERED_SPECIES = [
   },
 ];
 
-const toPercent = (score) => `${Math.round(score * 100)}%`;
-
 export default function AdminEndangeredListScreen() {
   const [speciesList, setSpeciesList] = useState(MOCK_ENDANGERED_SPECIES);
   const [selectedSpeciesId, setSelectedSpeciesId] = useState(null);
@@ -228,10 +226,8 @@ export default function AdminEndangeredListScreen() {
             <View style={[styles.listItem, isSelected && styles.listItemSelected]}>
               <View style={styles.listItemInfo}>
                 <Text style={styles.speciesName}>{item.species.common_name}</Text>
-                <Text style={styles.metaText}>Observation {item.observation_id}</Text>
-                <Text style={styles.metaText}>{item.location_name}</Text>
                 <Text style={styles.metaText}>Status: {item.is_endangered ? 'Endangered' : 'Not endangered'}</Text>
-                <Text style={styles.metaText}>Confidence: {toPercent(item.confidence_score)}</Text>
+                <Text style={styles.metaText}>Region: {item.location_name}</Text>
               </View>
               <TouchableOpacity
                 style={[styles.selectButton, isSelected && styles.selectButtonActive]}
