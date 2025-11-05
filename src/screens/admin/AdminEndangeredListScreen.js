@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { ADMIN_HEATMAP, ADMIN_ROOT } from '../../navigation/routes';
 
 const MOCK_ENDANGERED_SPECIES = [
   {
@@ -155,6 +157,7 @@ const toPercent = (score) => `${Math.round(score * 100)}%`;
 export default function AdminEndangeredListScreen() {
   const [speciesList, setSpeciesList] = useState(MOCK_ENDANGERED_SPECIES);
   const [selectedSpeciesId, setSelectedSpeciesId] = useState(null);
+  const navigation = useNavigation();
 
   const toggleMask = (observation_id) => {
     setSpeciesList((prev) =>
@@ -196,7 +199,22 @@ export default function AdminEndangeredListScreen() {
               </View>
               <TouchableOpacity
                 style={[styles.selectButton, isSelected && styles.selectButtonActive]}
-                onPress={() => setSelectedSpeciesId(isSelected ? null : item.species.species_id)}
+                onPress={() => {
+                  if (isSelected) {
+                    setSelectedSpeciesId(null);
+                    return;
+                  }
+
+                  setSelectedSpeciesId(item.species.species_id);
+                  navigation.navigate(ADMIN_ROOT, {
+                    screen: ADMIN_HEATMAP,
+                    params: {
+                      selectedSpeciesId: item.species.species_id,
+                      focusObservationId: item.observation_id,
+                    },
+                  });
+                  navigation.goBack();
+                }}
               >
                 <Text style={[styles.selectButtonText, isSelected && styles.selectButtonTextActive]}>Select</Text>
               </TouchableOpacity>
