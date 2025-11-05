@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Modal, TextInput } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const formatDate = (iso) => {
   const date = new Date(iso);
@@ -25,7 +26,12 @@ export default function AdminFlagReviewScreen({ route, navigation }) {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         <TouchableOpacity activeOpacity={0.9} onPress={() => setShowImage(true)}>
-          <Image source={observation.photo} style={styles.photo} />
+          <View style={styles.photoWrapper}>
+            <Image source={observation.photo} style={styles.photo} />
+            <View style={styles.resizeBadge}>
+              <Ionicons name="expand-outline" size={18} color="#FFFFFF" />
+            </View>
+          </View>
         </TouchableOpacity>
 
         <Text style={styles.title}>{observation.plant_name}</Text>
@@ -124,6 +130,17 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 220,
     borderRadius: 18,
+  },
+  photoWrapper: {
+    position: 'relative',
+  },
+  resizeBadge: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 16,
+    padding: 8,
   },
   title: {
     fontSize: 22,
