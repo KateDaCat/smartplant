@@ -9,35 +9,21 @@ const MOCK_IOT_DEVICES = [
     device_id: 'DEV-001',
     device_name: 'Soil Monitor A1',
     species: 'Rafflesia arnoldii',
-    location: {
-      name: 'Bako National Park',
-    },
-    last_updated: '2025-10-21T12:45:00Z',
+    location: 'Bako National Park',
   },
   {
     device_id: 'DEV-014',
     device_name: 'Weather Station B3',
     species: 'Nepenthes rajah',
-    location: {
-      name: 'Santubong Forest Reserve',
-    },
-    last_updated: '2025-10-21T12:41:00Z',
+    location: 'Santubong Forest Reserve',
   },
   {
     device_id: 'DEV-020',
     device_name: 'Trail Camera C2',
     species: 'Dipterocarpus sarawakensis',
-    location: {
-      name: 'Lambir Hills',
-    },
-    last_updated: '2025-10-21T12:36:00Z',
+    location: 'Lambir Hills',
   },
 ];
-
-const formatDate = (iso) => {
-  const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? iso : date.toLocaleString();
-};
 
 export default function AdminIotScreen() {
   const navigation = useNavigation();
@@ -53,7 +39,6 @@ export default function AdminIotScreen() {
         <View style={[styles.row, styles.headerRow]}>
           <Text style={[styles.cellWide, styles.headerText]}>Plant</Text>
           <Text style={[styles.cell, styles.headerText]}>Device ID</Text>
-          <Text style={[styles.cellActionSmall, styles.headerText]}>Last Update</Text>
           <Text style={[styles.cellAction, styles.headerText]}>Action</Text>
         </View>
 
@@ -65,10 +50,9 @@ export default function AdminIotScreen() {
             <View style={styles.row}>
               <View style={styles.cellWide}>
                 <Text style={styles.plantText}>{item.species}</Text>
-                <Text style={styles.metaText}>{item.location.name}</Text>
+                <Text style={styles.metaText}>{item.location}</Text>
               </View>
               <Text style={styles.cell}>{item.device_id}</Text>
-              <Text style={styles.cellActionSmall}>{formatDate(item.last_updated)}</Text>
               <View style={styles.cellAction}>
                 <TouchableOpacity
                   style={styles.viewButton}
@@ -128,16 +112,11 @@ const styles = StyleSheet.create({
     color: '#334155',
   },
   cellWide: {
-    flex: 1.5,
+    flex: 1.6,
   },
   cellAction: {
-    width: 110,
+    width: 120,
     alignItems: 'flex-end',
-  },
-  cellActionSmall: {
-    width: 160,
-    fontSize: 12,
-    color: '#475569',
   },
   headerText: {
     fontWeight: '700',
