@@ -9,6 +9,7 @@ import AdminFlagUnsureScreen from '../screens/admin/AdminFlagUnsureScreen';
 import AdminHeatmapScreen from '../screens/admin/AdminHeatmapScreen';
 import AdminIotScreen from '../screens/admin/AdminIotScreen';
 import { ADMIN_USERS, ADMIN_FLAG_UNSURE, ADMIN_HEATMAP, ADMIN_IOT } from './routes';
+import AdminSupportAgent from '../screens/admin/components/AdminSupportAgent';
 
 const Drawer = createDrawerNavigator();
 
@@ -109,19 +110,25 @@ export default function AdminNavigator() {
         drawerItemStyle: { borderRadius: 10, marginVertical: 2 },
       }}
     >
-      {drawerScreens.map((screen) => (
-        <Drawer.Screen
-          key={screen.name}
-          name={screen.name}
-          component={screen.component}
-          options={{
-            title: screen.label,
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name={screen.icon} size={size} color={color} />
-            ),
-          }}
-        />
-      ))}
+        {drawerScreens.map((screen) => (
+          <Drawer.Screen
+            key={screen.name}
+            name={screen.name}
+            options={{
+              title: screen.label,
+              drawerIcon: ({ color, size }) => (
+                <Ionicons name={screen.icon} size={size} color={color} />
+              ),
+            }}
+          >
+            {(props) => (
+              <View style={{ flex: 1 }}>
+                <screen.component {...props} />
+                <AdminSupportAgent />
+              </View>
+            )}
+          </Drawer.Screen>
+        ))}
     </Drawer.Navigator>
   );
 }
