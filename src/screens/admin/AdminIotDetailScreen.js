@@ -120,14 +120,14 @@ export default function AdminIotDetailScreen({ route }) {
           </Text>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Sensor Readings</Text>
-          <View style={styles.sensorGrid}>
-            {sensorCards.map((sensor) => (
-              <SensorCard key={sensor.key} {...sensor} />
-            ))}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Sensor Readings</Text>
+            <View style={styles.sensorGrid}>
+              {sensorCards.map(({ key: sensorKey, ...cardProps }) => (
+                <SensorCard key={sensorKey} {...cardProps} />
+              ))}
+            </View>
           </View>
-        </View>
 
         <Text style={styles.updatedText}>Last updated {formatDate(device.last_updated)}</Text>
       </ScrollView>
