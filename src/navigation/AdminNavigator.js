@@ -98,12 +98,12 @@ export default function AdminNavigator() {
         headerShadowVisible: false,
         sceneContainerStyle: { backgroundColor: '#FFFFFF' },
         drawerType: 'front',
-        drawerStyle: { width: 256, backgroundColor: '#FFFFFF' },
-        drawerInactiveTintColor: '#51606C',
-        drawerActiveTintColor: '#1E88E5',
-        drawerActiveBackgroundColor: '#E6F2FE',
-        drawerLabelStyle: { fontSize: 15, fontWeight: '500', marginLeft: -12 },
-        drawerItemStyle: { borderRadius: 10, marginVertical: 2 },
+          drawerStyle: { width: 256, backgroundColor: '#FFFFFF', paddingVertical: 0 },
+          drawerInactiveTintColor: '#51606C',
+          drawerActiveTintColor: '#FFFFFF',
+          drawerActiveBackgroundColor: '#1E88E5',
+          drawerItemStyle: { marginVertical: 0, borderRadius: 0 },
+          drawerLabelStyle: { fontSize: 15, fontWeight: '500', marginLeft: -12 },
       }}
     >
         {drawerScreens.map((screen) => (
