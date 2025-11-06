@@ -56,7 +56,7 @@ export default function AdminSupportAgent() {
         style={[styles.fab, expanded && styles.fabExpanded]}
         onPress={() => setExpanded((prev) => !prev)}
       >
-        <Ionicons name={expanded ? 'chatbubble-ellipses' : 'sparkles-outline'} size={24} color="#FFFFFF" />
+        <Ionicons name="sparkles-outline" size={24} color="#FFFFFF" />
       </TouchableOpacity>
 
         {expanded && (
