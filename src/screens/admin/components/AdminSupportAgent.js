@@ -1,6 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { Animated, Dimensions, PanResponder, StyleSheet, TouchableOpacity, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { ADMIN_AGENT_CHAT } from '../../../navigation/routes';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const FAB_SIZE = 56;
@@ -11,6 +13,7 @@ const INITIAL_POSITION = { x: 0, y: 0 };
 export default function AdminSupportAgent() {
   const pan = useRef(new Animated.ValueXY(INITIAL_POSITION)).current;
   const [expanded, setExpanded] = useState(false);
+  const navigation = useNavigation();
 
   const panResponder = useRef(
     PanResponder.create({
@@ -56,21 +59,25 @@ export default function AdminSupportAgent() {
         <Ionicons name={expanded ? 'chatbubble-ellipses' : 'sparkles-outline'} size={24} color="#FFFFFF" />
       </TouchableOpacity>
 
-      {expanded && (
-        <View style={styles.card}>
-          <View style={styles.headerRow}>
-            <Ionicons name="sparkles" size={16} color="#2563EB" />
-            <Text style={styles.cardTitle}>SmartPlant Agent</Text>
+        {expanded && (
+          <View style={styles.card}>
+            <View style={styles.headerRow}>
+              <Ionicons name="sparkles" size={16} color="#2563EB" />
+              <Text style={styles.cardTitle}>SmartPlant Agent</Text>
+            </View>
+            <Text style={styles.cardSubtitle}>
+              Ask for help, triage alerts, or summarize field reports instantly.
+            </Text>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.chatButton}
+              onPress={() => navigation.navigate(ADMIN_AGENT_CHAT)}
+            >
+              <Text style={styles.chatButtonText}>Open AI Assistant</Text>
+              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
-          <Text style={styles.cardSubtitle}>
-            Ask for help, triage alerts, or summarize field reports instantly.
-          </Text>
-          <TouchableOpacity activeOpacity={0.85} style={styles.chatButton}>
-            <Text style={styles.chatButtonText}>Open AI Assistant</Text>
-            <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-      )}
+        )}
     </Animated.View>
   );
 }
