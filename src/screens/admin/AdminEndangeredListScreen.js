@@ -238,11 +238,16 @@ export default function AdminEndangeredListScreen() {
                   }
 
                   setSelectedSpeciesId(item.species.species_id);
-                  navigation.navigate(ADMIN_ROOT, {
-                    screen: ADMIN_HEATMAP,
+                  const rootNav = navigation.getParent();
+                  rootNav?.navigate({
+                    name: ADMIN_ROOT,
                     params: {
-                      selectedObservation: item,
+                      screen: ADMIN_HEATMAP,
+                      params: {
+                        selectedObservation: item,
+                      },
                     },
+                    merge: true,
                   });
                   navigation.goBack();
                 }}
