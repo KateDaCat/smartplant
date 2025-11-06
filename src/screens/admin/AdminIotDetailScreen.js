@@ -99,10 +99,12 @@ export default function AdminIotDetailScreen({ route }) {
     },
   ];
 
+  const imageSource = device.photo ? device.photo : require('../../../assets/IdentifyIcon.png');
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Image source={device.photo} style={styles.photo} />
+        <Image source={imageSource} style={styles.photo} resizeMode="cover" />
 
         <Text style={styles.title}>{device.device_name}</Text>
         <Text style={styles.subtitle}>Device ID: {device.device_id}</Text>
