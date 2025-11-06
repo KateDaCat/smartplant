@@ -99,7 +99,7 @@ export default function AdminIotDetailScreen({ route }) {
     },
   ];
 
-  const imageSource = device.photo ? device.photo : require('../../../assets/IdentifyIcon.png');
+  const imageSource = device.photo ? device.photo : require('../../../assets/pitcher.jpg');
 
   return (
     <SafeAreaView style={styles.container}>
