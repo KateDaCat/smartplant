@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -9,6 +9,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -42,6 +43,10 @@ const AGENT_SUGGESTIONS = [
 export default function AdminAgentChatScreen() {
   const [messages, setMessages] = useState(MOCK_CONVERSATION);
   const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const typingAnim = useRef(new Animated.Value(0)).current;
+  const typingLoopRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
   const reversed = useMemo(() => [...messages].reverse(), [messages]);
 
@@ -68,7 +73,59 @@ export default function AdminAgentChatScreen() {
       },
     ]);
     setInput('');
+    setIsTyping(true);
+
+    if (typingLoopRef.current) {
+      typingLoopRef.current.stop();
+    }
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingLoopRef.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(typingAnim, {
+          toValue: 1,
+          duration: 260,
+          useNativeDriver: true,
+        }),
+        Animated.timing(typingAnim, {
+          toValue: 2,
+          duration: 260,
+          useNativeDriver: true,
+        }),
+        Animated.timing(typingAnim, {
+          toValue: 3,
+          duration: 260,
+          useNativeDriver: true,
+        }),
+        Animated.timing(typingAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    typingAnim.setValue(0);
+    typingLoopRef.current.start();
+
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      typingLoopRef.current?.stop();
+      typingLoopRef.current = null;
+      typingAnim.setValue(0);
+    }, 2000);
   };
+
+  useEffect(() => {
+    return () => {
+      typingLoopRef.current?.stop();
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -128,6 +185,43 @@ export default function AdminAgentChatScreen() {
               </View>
             );
           }}
+          ListFooterComponent={
+            isTyping ? (
+              <View style={[styles.messageRow, styles.agentMessageRow]}>
+                <View style={styles.avatarAgent}>
+                  <Ionicons name="sparkles" size={18} color="#FFFFFF" />
+                </View>
+                <View style={[styles.messageBubble, styles.agentBubble, styles.typingBubble]}>
+                  <View style={styles.typingDots}>
+                    {[0, 1, 2].map((index) => (
+                      <Animated.View
+                        key={`typing-dot-${index}`}
+                        style={[
+                          styles.dot,
+                          {
+                            opacity: typingAnim.interpolate({
+                              inputRange: [index, index + 1],
+                              outputRange: [0.25, 1],
+                              extrapolate: 'clamp',
+                            }),
+                            transform: [
+                              {
+                                translateY: typingAnim.interpolate({
+                                  inputRange: [index, index + 1],
+                                  outputRange: [6, -2],
+                                  extrapolate: 'clamp',
+                                }),
+                              },
+                            ],
+                          },
+                        ]}
+                      />
+                    ))}
+                  </View>
+                </View>
+              </View>
+            ) : null
+          }
         />
 
         <View style={styles.suggestionsRow}>
@@ -273,6 +367,22 @@ const styles = StyleSheet.create({
   adminBubble: {
     backgroundColor: '#2563EB',
     borderBottomRightRadius: 4,
+  },
+  typingBubble: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    minWidth: 64,
+  },
+  typingDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#1D4ED8',
   },
   messageText: {
     fontSize: 13.5,
