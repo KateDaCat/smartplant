@@ -67,25 +67,21 @@ const drawerScreens = [
   {
     name: ADMIN_USERS,
     label: 'Users',
-    icon: 'people-outline',
     component: AdminUsersScreen,
   },
   {
     name: ADMIN_FLAG_UNSURE,
     label: 'Flag Unsure',
-    icon: 'flag-outline',
     component: AdminFlagUnsureScreen,
   },
   {
     name: ADMIN_HEATMAP,
     label: 'Heatmap',
-    icon: 'map-outline',
     component: AdminHeatmapScreen,
   },
   {
     name: ADMIN_IOT,
     label: 'IoT Monitoring',
-    icon: 'pulse-outline',
     component: AdminIotScreen,
   },
 ];
@@ -116,9 +112,6 @@ export default function AdminNavigator() {
             name={screen.name}
             options={{
               title: screen.label,
-              drawerIcon: ({ color, size }) => (
-                <Ionicons name={screen.icon} size={size} color={color} />
-              ),
             }}
           >
             {(props) => (
