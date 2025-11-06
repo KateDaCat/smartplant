@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -60,6 +60,7 @@ export default function AdminHeatmapScreen() {
   const [selectedObservationId, setSelectedObservationId] = useState(null);
   const navigation = useNavigation();
   const route = useRoute();
+  const mapRef = useRef(null);
 
   const selectedObservation = useMemo(
     () =>
@@ -129,6 +130,22 @@ export default function AdminHeatmapScreen() {
     navigation.setParams({ selectedObservation: undefined });
   }, [incomingObservation, navigation]);
 
+  useEffect(() => {
+    if (!selectedObservation || !mapRef.current) {
+      return;
+    }
+
+    mapRef.current.animateToRegion(
+      {
+        latitude: selectedObservation.location_latitude,
+        longitude: selectedObservation.location_longitude,
+        latitudeDelta: 0.25,
+        longitudeDelta: 0.25,
+      },
+      600
+    );
+  }, [selectedObservation]);
+
   const handleChoosePlant = () => {
     navigation.navigate(ADMIN_ENDANGERED, {
       origin: 'AdminHeatmap',
@@ -195,7 +212,8 @@ export default function AdminHeatmapScreen() {
         </View>
 
         <View style={styles.mapWrapper}>
-          <MapView
+        <MapView
+          ref={mapRef}
             style={styles.map}
             initialRegion={{
               latitude: 1.55,
