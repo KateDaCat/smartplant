@@ -57,18 +57,10 @@ const mockAdminObservations = [
 export default function AdminHeatmapScreen() {
   const [observations, setObservations] = useState(mockAdminObservations);
   const [viewMode, setViewMode] = useState('heatmap');
-  const [selectedObservationId, setSelectedObservationId] = useState(null);
+  const [selectedObservation, setSelectedObservation] = useState(null);
   const navigation = useNavigation();
   const route = useRoute();
   const mapRef = useRef(null);
-
-  const selectedObservation = useMemo(
-    () =>
-      selectedObservationId
-        ? observations.find((obs) => obs.observation_id === selectedObservationId) ?? null
-        : null,
-    [selectedObservationId, observations]
-  );
 
   const filteredObservations = useMemo(
     () =>
@@ -98,6 +90,11 @@ export default function AdminHeatmapScreen() {
           : item
       )
     );
+    setSelectedObservation((prev) =>
+      prev && prev.observation_id === observation_id
+        ? { ...prev, is_masked: !prev.is_masked }
+        : prev
+    );
   };
 
   const HEATMAP_RADIUS = Platform.OS === 'android' ? 40 : 60;
@@ -125,10 +122,14 @@ export default function AdminHeatmapScreen() {
       return [...prev, incomingObservation];
     });
 
-    setSelectedObservationId(incomingObservation.observation_id);
+    setSelectedObservation((prev) => {
+      if (prev && prev.observation_id === incomingObservation.observation_id) {
+        return { ...prev, ...incomingObservation };
+      }
+      return { ...incomingObservation };
+    });
     setViewMode('heatmap');
-    navigation.setParams({ selectedObservation: undefined });
-  }, [incomingObservation, navigation]);
+  }, [incomingObservation]);
 
   useEffect(() => {
     if (!selectedObservation || !mapRef.current) {
@@ -144,12 +145,13 @@ export default function AdminHeatmapScreen() {
       },
       600
     );
-  }, [selectedObservation]);
+    navigation.setParams({ selectedObservation: undefined });
+  }, [selectedObservation, navigation]);
 
   const handleChoosePlant = () => {
     navigation.navigate(ADMIN_ENDANGERED, {
       origin: 'AdminHeatmap',
-      selectedObservationId,
+      selectedObservationId: selectedObservation?.observation_id,
     });
   };
 
