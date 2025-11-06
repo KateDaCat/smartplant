@@ -51,9 +51,9 @@ function AdminDrawerContent(props) {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.drawerListWrapper}>
-        <DrawerItemList {...props} />
-      </View>
+        <View style={styles.drawerListWrapper}>
+          <DrawerItemList {...props} />
+        </View>
 
       <View style={styles.drawerFooter}>
         <Text style={styles.footerText}>SmartPlant Admin Console</Text>
@@ -103,6 +103,7 @@ export default function AdminNavigator() {
           drawerActiveTintColor: '#FFFFFF',
           drawerActiveBackgroundColor: '#1E88E5',
           drawerItemStyle: { marginVertical: 0, borderRadius: 0 },
+          drawerContentContainerStyle: { paddingLeft: 0, paddingRight: 0 },
           drawerLabelStyle: { fontSize: 15, fontWeight: '500', marginLeft: -12 },
       }}
     >
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
   drawerListWrapper: {
     flex: 1,
     paddingTop: 16,
-    paddingHorizontal: 12,
+    paddingHorizontal: 0,
   },
   drawerFooter: {
     padding: 20,
