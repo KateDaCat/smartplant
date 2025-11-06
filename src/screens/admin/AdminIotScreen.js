@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -21,6 +21,7 @@ const MOCK_IOT_DEVICES = [
       motion_detected: false,
     },
     last_updated: '2025-10-21T12:45:00Z',
+    alerts: [],
   },
   {
     device_id: 'DEV-014',
@@ -38,6 +39,7 @@ const MOCK_IOT_DEVICES = [
       motion_detected: true,
     },
     last_updated: '2025-10-21T12:41:00Z',
+    alerts: ['Humidity', 'Motion'],
   },
   {
     device_id: 'DEV-020',
@@ -55,11 +57,43 @@ const MOCK_IOT_DEVICES = [
       motion_detected: false,
     },
     last_updated: '2025-10-21T12:36:00Z',
+    alerts: ['Soil Moisture'],
   },
 ];
 
 export default function AdminIotScreen() {
   const navigation = useNavigation();
+  const alertDevices = useMemo(
+    () => MOCK_IOT_DEVICES.filter((device) => device.alerts && device.alerts.length > 0),
+    []
+  );
+  const normalDevices = useMemo(
+    () => MOCK_IOT_DEVICES.filter((device) => !device.alerts || device.alerts.length === 0),
+    []
+  );
+
+  const renderDeviceRow = (item, isAlert = false) => (
+    <View style={[styles.row, isAlert && styles.alertRow]}
+      key={item.device_id}
+    >
+      <View style={styles.cellWide}>
+        <Text style={[styles.plantText, isAlert && styles.alertPlantText]}>{item.species}</Text>
+        <Text style={[styles.metaText, isAlert && styles.alertMetaText]}>{item.location.name}</Text>
+        {isAlert && (
+          <Text style={styles.alertDetailText}>Alerts: {item.alerts.join(', ')}</Text>
+        )}
+      </View>
+      <Text style={[styles.cell, isAlert && styles.alertCellText]}>{item.device_id}</Text>
+      <View style={styles.cellAction}>
+        <TouchableOpacity
+          style={styles.viewButton}
+          onPress={() => navigation.navigate(ADMIN_IOT_DETAIL, { device: item })}
+        >
+          <Text style={styles.viewText}>View</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -67,6 +101,17 @@ export default function AdminIotScreen() {
       <Text style={styles.headerSubtitle}>
         Overview of active sensors in the field. Tap `View` to drill into analytics.
       </Text>
+
+      {alertDevices.length > 0 && (
+        <View style={[styles.table, styles.alertTable]}>
+          <View style={[styles.row, styles.headerRow, styles.alertHeaderRow]}>
+            <Text style={[styles.cellWide, styles.headerText, styles.alertHeaderText]}>Plant</Text>
+            <Text style={[styles.cell, styles.headerText, styles.alertHeaderText]}>Device ID</Text>
+            <Text style={[styles.cellAction, styles.headerText, styles.alertHeaderText]}>Action</Text>
+          </View>
+          {alertDevices.map((item) => renderDeviceRow(item, true))}
+        </View>
+      )}
 
       <View style={styles.table}>
         <View style={[styles.row, styles.headerRow]}>
@@ -76,24 +121,13 @@ export default function AdminIotScreen() {
         </View>
 
         <FlatList
-          data={MOCK_IOT_DEVICES}
+          data={normalDevices}
           keyExtractor={(item) => item.device_id}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
-          renderItem={({ item }) => (
-            <View style={styles.row}>
-              <View style={styles.cellWide}>
-                <Text style={styles.plantText}>{item.species}</Text>
-                <Text style={styles.metaText}>{item.location.name}</Text>
-              </View>
-              <Text style={styles.cell}>{item.device_id}</Text>
-              <View style={styles.cellAction}>
-                <TouchableOpacity
-                  style={styles.viewButton}
-                  onPress={() => navigation.navigate(ADMIN_IOT_DETAIL, { device: item })}
-                >
-                  <Text style={styles.viewText}>View</Text>
-                </TouchableOpacity>
-              </View>
+          renderItem={({ item }) => renderDeviceRow(item)}
+          ListEmptyComponent={() => (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>All monitored plants are currently in alert state.</Text>
             </View>
           )}
         />
@@ -126,6 +160,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
+  alertTable: {
+    marginBottom: 16,
+    borderColor: '#FECACA',
+    backgroundColor: '#FFF1F2',
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -134,6 +173,9 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     backgroundColor: '#F1F5F9',
+  },
+  alertHeaderRow: {
+    backgroundColor: '#FEE2E2',
   },
   separator: {
     height: 1,
@@ -167,6 +209,29 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginTop: 2,
   },
+  alertRow: {
+    backgroundColor: '#FFE4E6',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#FCA5A5',
+  },
+  alertPlantText: {
+    color: '#7F1D1D',
+  },
+  alertMetaText: {
+    color: '#B91C1C',
+  },
+  alertCellText: {
+    color: '#7F1D1D',
+  },
+  alertHeaderText: {
+    color: '#7F1D1D',
+  },
+  alertDetailText: {
+    marginTop: 4,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#B91C1C',
+  },
   viewButton: {
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -177,5 +242,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  emptyState: {
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+  },
+  emptyStateText: {
+    fontSize: 13,
+    color: '#475467',
+    textAlign: 'center',
   },
 });

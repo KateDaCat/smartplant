@@ -7,9 +7,8 @@ import { useNavigation } from '@react-navigation/native';
 import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
 import AdminFlagUnsureScreen from '../screens/admin/AdminFlagUnsureScreen';
 import AdminHeatmapScreen from '../screens/admin/AdminHeatmapScreen';
-import AdminEndangeredListScreen from '../screens/admin/AdminEndangeredListScreen';
 import AdminIotScreen from '../screens/admin/AdminIotScreen';
-import { ADMIN_USERS, ADMIN_FLAG_UNSURE, ADMIN_HEATMAP, ADMIN_ENDANGERED, ADMIN_IOT } from './routes';
+import { ADMIN_USERS, ADMIN_FLAG_UNSURE, ADMIN_HEATMAP, ADMIN_IOT } from './routes';
 
 const Drawer = createDrawerNavigator();
 
@@ -81,12 +80,6 @@ const drawerScreens = [
     label: 'Heatmap',
     icon: 'map-outline',
     component: AdminHeatmapScreen,
-  },
-  {
-    name: ADMIN_ENDANGERED,
-    label: 'Endangered List',
-    icon: 'leaf-outline',
-    component: AdminEndangeredListScreen,
   },
   {
     name: ADMIN_IOT,
