@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { ADMIN_HEATMAP, ADMIN_ROOT } from '../../navigation/routes';
 
 const MOCK_ENDANGERED_SPECIES = [
@@ -238,19 +238,18 @@ export default function AdminEndangeredListScreen() {
                   }
 
                   setSelectedSpeciesId(item.species.species_id);
-                  const rootNav = navigation.getParent();
-                  rootNav?.navigate({
-                    name: ADMIN_ROOT,
+                  navigation.dispatch(
+                    CommonActions.navigate({
+                      name: ADMIN_ROOT,
                     params: {
                       screen: ADMIN_HEATMAP,
                       params: {
                         selectedObservation: item,
                       },
                     },
-                    merge: true,
-                  });
-                  navigation.goBack();
-                }}
+                      })
+                    );
+                  }}
               >
                 <Text style={[styles.selectButtonText, isSelected && styles.selectButtonTextActive]}>Select</Text>
               </TouchableOpacity>
