@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Defs, LinearGradient, Path, Polyline, Stop, Circle } from 'react-native-svg';
+import { useNavigation } from '@react-navigation/native';
 
 const formatDate = (iso) => {
   const date = new Date(iso);
@@ -42,6 +43,7 @@ const SensorCard = ({ icon, title, value, unit, helper, alert }) => (
 );
 
 export default function AdminIotDetailScreen({ route }) {
+  const navigation = useNavigation();
   const device = route?.params?.device;
   const [historyVisible, setHistoryVisible] = useState(false);
 
@@ -239,6 +241,18 @@ export default function AdminIotDetailScreen({ route }) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            onPress={() => navigation.canGoBack() && navigation.goBack()}
+            style={styles.backButton}
+            activeOpacity={0.7}
+            accessibilityLabel="Go back"
+          >
+            <Ionicons name="arrow-back" size={20} color="#0F172A" />
+            <Text style={styles.backButtonText}>Back</Text>
+          </TouchableOpacity>
+        </View>
+
         <Image source={imageSource} style={styles.photo} resizeMode="cover" />
 
         <Text style={styles.title}>{device.device_name}</Text>
@@ -492,6 +506,23 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 18,
   },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
+    backButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: 6,
+      paddingHorizontal: 4,
+    },
+    backButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#0F172A',
+    },
   title: {
     fontSize: 22,
     fontWeight: '700',
