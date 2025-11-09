@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Defs, LinearGradient, Stop, Path, Line, Circle, Polyline } from 'react-native-svg';
+import Svg, { Line, Circle, Polyline } from 'react-native-svg';
 
 const HOURS = 60 * 60 * 1000;
 const DAYS = 24 * HOURS;
@@ -144,7 +144,6 @@ const MetricChart = ({ data, metric, rangeKey, chartWidth }) => {
   const chartHeight = 164;
   const topPadding = 18;
   const bottomPadding = 28;
-  const gradientId = `metric-gradient-${metric.key}`;
 
   const filteredEntries = data.filter(
     (entry) =>
@@ -191,12 +190,6 @@ const MetricChart = ({ data, metric, rangeKey, chartWidth }) => {
   });
 
   const polylinePoints = points.map((point) => `${point.x},${point.y}`).join(' ');
-  const areaPath = [
-    `M ${points[0].x} ${chartHeight}`,
-    ...points.map((point) => `L ${point.x} ${point.y}`),
-    `L ${points[points.length - 1].x} ${chartHeight}`,
-    'Z',
-  ].join(' ');
 
   const gridLines = Array.from({ length: 4 }, (_, index) => {
     const ratio = index / 3;
@@ -257,13 +250,6 @@ const MetricChart = ({ data, metric, rangeKey, chartWidth }) => {
 
       <View style={styles.chartCanvas}>
         <Svg width="100%" height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
-          <Defs>
-            <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor={`${color}33`} />
-              <Stop offset="100%" stopColor={`${color}00`} />
-            </LinearGradient>
-          </Defs>
-
           {gridLines.map((line, index) => (
             <Line
               key={`grid-${index}`}
@@ -277,7 +263,6 @@ const MetricChart = ({ data, metric, rangeKey, chartWidth }) => {
             />
           ))}
 
-          <Path d={areaPath} fill={`url(#${gradientId})`} />
           <Polyline
             points={polylinePoints}
             fill="none"
