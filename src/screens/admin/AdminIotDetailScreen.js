@@ -8,6 +8,14 @@ const formatDate = (iso) => {
   return Number.isNaN(date.getTime()) ? iso : date.toLocaleString();
 };
 
+const formatTime = (iso) => {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '--';
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const BAR_MAX_HEIGHT = 120;
+
 const SensorCard = ({ icon, title, value, unit, helper, alert }) => (
   <View style={[styles.sensorCard, alert ? styles.sensorCardAlert : styles.sensorCardOk]}>
     <View style={styles.sensorCardHeader}>
@@ -89,6 +97,80 @@ export default function AdminIotDetailScreen({ route }) {
     if (typeof val !== 'number' || Number.isNaN(val)) return '--';
     return val.toFixed(digits);
   };
+
+  const formatMetricValue = (val, digits, unit) => {
+    if (typeof val !== 'number' || Number.isNaN(val)) return '--';
+    return `${formatNumber(val, digits)}${unit}`;
+  };
+
+  const chartMetrics = useMemo(() => {
+    const configs = [
+      {
+        key: 'temperature',
+        label: 'Temperature',
+        unit: '°C',
+        color: '#F97316',
+        digits: 1,
+        getValue: (entry) => entry.temperature,
+      },
+      {
+        key: 'humidity',
+        label: 'Humidity',
+        unit: '%',
+        color: '#0EA5E9',
+        digits: 0,
+        getValue: (entry) => entry.humidity,
+      },
+      {
+        key: 'soil',
+        label: 'Soil Moisture',
+        unit: '%',
+        color: '#22C55E',
+        digits: 0,
+        getValue: (entry) => entry.soil_moisture,
+      },
+    ];
+
+    return configs.map((config) => {
+      const values = historySeries
+        .map(config.getValue)
+        .filter((val) => typeof val === 'number' && !Number.isNaN(val));
+
+      const min = values.length > 0 ? Math.min(...values) : null;
+      const max = values.length > 0 ? Math.max(...values) : null;
+      const delta =
+        min !== null && max !== null ? Math.max(0.0001, max - min) : 1;
+
+      return {
+        ...config,
+        min,
+        max,
+        points: historySeries.map((entry, index) => {
+          const raw = config.getValue(entry);
+          const normalized =
+            typeof raw === 'number' && min !== null && max !== null
+              ? (raw - min) / delta
+              : 0.5;
+          return {
+            key: `${config.key}-${index}`,
+            raw,
+            normalized: Math.max(0.1, Math.min(1, normalized)),
+            timestamp: entry.timestamp,
+          };
+        }),
+      };
+    });
+  }, [historySeries]);
+
+  const motionTimeline = useMemo(
+    () =>
+      historySeries.map((entry, index) => ({
+        key: `motion-${index}`,
+        timestamp: entry.timestamp,
+        detected: Boolean(entry.motion_detected),
+      })),
+    [historySeries]
+  );
 
   const sensorCards = [
     {
@@ -174,7 +256,6 @@ export default function AdminIotDetailScreen({ route }) {
             activeOpacity={0.85}
             onPress={() => setHistoryVisible(true)}
           >
-            <Ionicons name="time-outline" size={18} color="#FFFFFF" />
             <Text style={styles.historyButtonText}>View Previous Data</Text>
           </TouchableOpacity>
 
@@ -204,37 +285,64 @@ export default function AdminIotDetailScreen({ route }) {
                 </TouchableOpacity>
               </View>
 
-              <ScrollView contentContainerStyle={styles.historyList}>
-                {historySeries.map((entry, index) => (
-                  <View key={`${entry.timestamp}-${index}`} style={styles.historyEntry}>
-                    <View style={styles.historyEntryHeader}>
-                      <Ionicons name="calendar-outline" size={14} color="#1E3A8A" />
-                      <Text style={styles.historyTimestamp}>{formatDate(entry.timestamp)}</Text>
+              <ScrollView contentContainerStyle={styles.chartList}>
+                {chartMetrics.map((metric) => (
+                  <View key={metric.key} style={styles.chartCard}>
+                    <View style={styles.chartHeader}>
+                      <View style={[styles.chartLegendDot, { backgroundColor: metric.color }]} />
+                      <View style={styles.chartHeaderText}>
+                        <Text style={styles.chartTitle}>{metric.label}</Text>
+                        <Text style={styles.chartSubtitle}>
+                          Latest {formatMetricValue(metric.points.at(-1)?.raw, metric.digits, metric.unit)}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={styles.historyMetricsRow}>
-                      <View style={[styles.historyMetricChip, styles.metricTemperature]}>
-                        <Ionicons name="thermometer-outline" size={14} color="#B91C1C" />
-                        <Text style={styles.historyMetricText}>{formatNumber(entry.temperature, 1)}°C</Text>
-                      </View>
-                      <View style={[styles.historyMetricChip, styles.metricHumidity]}>
-                        <Ionicons name="water-outline" size={14} color="#0369A1" />
-                        <Text style={styles.historyMetricText}>{formatNumber(entry.humidity, 0)}%</Text>
-                      </View>
-                      <View style={[styles.historyMetricChip, styles.metricSoil]}>
-                        <Ionicons name="leaf-outline" size={14} color="#15803D" />
-                        <Text style={styles.historyMetricText}>{formatNumber(entry.soil_moisture, 0)}%</Text>
-                      </View>
-                      <View style={[styles.historyMetricChip, styles.metricMotion, entry.motion_detected && styles.metricMotionActive]}>
-                        <Ionicons
-                          name={entry.motion_detected ? 'walk' : 'walk-outline'}
-                          size={14}
-                          color={entry.motion_detected ? '#1E40AF' : '#475569'}
-                        />
-                        <Text style={styles.historyMetricText}>{entry.motion_detected ? 'Motion' : 'No motion'}</Text>
-                      </View>
+                    <Text style={styles.chartRange}>
+                      Peak {formatMetricValue(metric.max, metric.digits, metric.unit)} • Low{' '}
+                      {formatMetricValue(metric.min, metric.digits, metric.unit)}
+                    </Text>
+                    <View style={styles.chartBars}>
+                      {metric.points.map((point, index) => (
+                        <View key={point.key} style={styles.chartBarWrapper}>
+                          <View
+                            style={[
+                              styles.chartBar,
+                              {
+                                height: Math.max(12, Math.round(point.normalized * BAR_MAX_HEIGHT)),
+                                backgroundColor: metric.color,
+                              },
+                            ]}
+                          />
+                          <Text style={styles.chartBarLabel}>{formatTime(point.timestamp)}</Text>
+                        </View>
+                      ))}
                     </View>
                   </View>
                 ))}
+
+                {motionTimeline.length > 0 && (
+                  <View style={styles.motionSection}>
+                    <Text style={styles.motionTitle}>Motion detections</Text>
+                    <View style={styles.motionChips}>
+                      {motionTimeline.map((slot) => (
+                        <View
+                          key={slot.key}
+                          style={[
+                            styles.motionChip,
+                            slot.detected ? styles.motionChipActive : styles.motionChipMuted,
+                          ]}
+                        >
+                          <Ionicons
+                            name={slot.detected ? 'walk' : 'walk-outline'}
+                            size={14}
+                            color={slot.detected ? '#1E3A8A' : '#94A3B8'}
+                          />
+                          <Text style={styles.motionChipText}>{formatTime(slot.timestamp)}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
               </ScrollView>
 
               <View style={styles.modalFooter}>
@@ -388,10 +496,8 @@ const styles = StyleSheet.create({
     historyButton: {
       marginTop: 4,
       alignSelf: 'stretch',
-      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 10,
       paddingVertical: 12,
       borderRadius: 16,
       backgroundColor: '#2563EB',
@@ -440,59 +546,114 @@ const styles = StyleSheet.create({
       color: '#64748B',
       lineHeight: 18,
     },
-    historyList: {
-      gap: 14,
+    chartList: {
+      paddingBottom: 12,
+      gap: 16,
     },
-    historyEntry: {
-      borderRadius: 16,
+    chartCard: {
+      borderRadius: 18,
       borderWidth: 1,
       borderColor: '#E2E8F0',
-      padding: 14,
-      backgroundColor: '#F9FAFB',
-      gap: 10,
+      backgroundColor: '#F8FBFF',
+      padding: 16,
+      gap: 12,
+      shadowColor: '#000',
+      shadowOpacity: 0.03,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 2,
     },
-    historyEntryHeader: {
+    chartHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 12,
     },
-    historyTimestamp: {
-      fontSize: 13,
-      fontWeight: '600',
-      color: '#1E293B',
+    chartLegendDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
     },
-    historyMetricsRow: {
+    chartHeaderText: {
+      flex: 1,
+      gap: 2,
+    },
+    chartTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: '#0F172A',
+    },
+    chartSubtitle: {
+      fontSize: 12,
+      color: '#475467',
+    },
+    chartRange: {
+      fontSize: 12,
+      color: '#5B6C7C',
+    },
+    chartBars: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      justifyContent: 'space-between',
+      gap: 12,
+      height: BAR_MAX_HEIGHT + 24,
+      paddingHorizontal: 4,
+    },
+    chartBarWrapper: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+    },
+    chartBar: {
+      width: 18,
+      borderRadius: 9,
+    },
+    chartBarLabel: {
+      marginTop: 6,
+      fontSize: 11,
+      color: '#64748B',
+    },
+    motionSection: {
+      marginTop: 8,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: '#E2E8F0',
+      backgroundColor: '#FFFFFF',
+      padding: 16,
+      gap: 12,
+    },
+    motionTitle: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: '#0F172A',
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+    },
+    motionChips: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: 8,
     },
-    historyMetricChip: {
+    motionChip: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 999,
+      borderWidth: 1,
     },
-    historyMetricText: {
+    motionChipActive: {
+      backgroundColor: '#EEF2FF',
+      borderColor: '#C7D2FE',
+    },
+    motionChipMuted: {
+      backgroundColor: '#F1F5F9',
+      borderColor: '#E2E8F0',
+    },
+    motionChipText: {
       fontSize: 12,
       fontWeight: '600',
-      color: '#1F2937',
-    },
-    metricTemperature: {
-      backgroundColor: '#FEE2E2',
-    },
-    metricHumidity: {
-      backgroundColor: '#DBEAFE',
-    },
-    metricSoil: {
-      backgroundColor: '#DCFCE7',
-    },
-    metricMotion: {
-      backgroundColor: '#E2E8F0',
-    },
-    metricMotionActive: {
-      backgroundColor: '#E0E7FF',
+      color: '#334155',
     },
     modalFooter: {
       flexDirection: 'row',
