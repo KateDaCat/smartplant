@@ -49,40 +49,39 @@ export default function AdminFlagUnsureScreen() {
         AI low-confidence identifications awaiting manual review.
       </Text>
 
-      <FlatList
-        data={MOCK_FLAGGED}
-        keyExtractor={(item) => item.observation_id}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.plantText}>{item.plant_name}</Text>
-              <Text style={styles.confidenceChip}>{toPercent(item.confidence)}</Text>
+      <View style={styles.table}>
+        <View style={[styles.row, styles.headerRow]}>
+          <Text style={[styles.cellWide, styles.headerText]}>Plant</Text>
+          <Text style={[styles.cell, styles.headerText]}>Confidence</Text>
+          <Text style={[styles.cellAction, styles.headerText]}>Action</Text>
+        </View>
+
+        <FlatList
+          data={MOCK_FLAGGED}
+          keyExtractor={(item) => item.observation_id}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          renderItem={({ item }) => (
+            <View style={styles.row}>
+              <View style={styles.cellWide}>
+                <Text style={styles.plantText}>{item.plant_name}</Text>
+                <Text style={styles.metaText}>Obs {item.observation_id} • {item.location}</Text>
+              </View>
+              <Text style={styles.cell}>{toPercent(item.confidence)}</Text>
+              <View style={styles.cellAction}>
+                <TouchableOpacity
+                  style={styles.reviewButton}
+                  onPress={() => navigation.navigate(ADMIN_FLAG_REVIEW, { observation: item })}
+                >
+                  <Text style={styles.reviewText}>Review</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={styles.metaBlock}>
-              <InfoRow label="Observation" value={item.observation_id} />
-              <InfoRow label="Location" value={item.location} />
-              <InfoRow label="Submitted" value={`${item.user} • ${formatDate(item.submitted_at)}`} />
-            </View>
-            <TouchableOpacity
-              style={styles.reviewButton}
-              onPress={() => navigation.navigate(ADMIN_FLAG_REVIEW, { observation: item })}
-            >
-              <Text style={styles.reviewText}>Review</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      />
+          )}
+        />
+      </View>
     </SafeAreaView>
   );
 }
-
-const InfoRow = ({ label, value }) => (
-  <View style={styles.infoRow}>
-    <Text style={styles.infoLabel}>{label}</Text>
-    <Text style={styles.infoValue}>{value}</Text>
-  </View>
-);
 
 const styles = StyleSheet.create({
   container: {
@@ -101,34 +100,44 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 16,
   },
-  listContent: {
-    gap: 16,
-    paddingBottom: 24,
-  },
-  card: {
+  table: {
     backgroundColor: '#FFFFFF',
     borderRadius: 18,
-    padding: 18,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     shadowColor: '#000',
-    shadowOpacity: 0.03,
+    shadowOpacity: 0.04,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
-    gap: 12,
   },
-  cardHeader: {
+  row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
-  confidenceChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: '#EEF2FF',
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1E40AF',
+  headerRow: {
+    backgroundColor: '#F1F5F9',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+  },
+  cell: {
+    flex: 0.9,
+    fontSize: 13,
+    color: '#334155',
+  },
+  cellWide: {
+    flex: 1.8,
+  },
+  cellAction: {
+    width: 120,
+    alignItems: 'flex-end',
   },
   headerText: {
     fontWeight: '700',
@@ -141,31 +150,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#0F172A',
   },
-  metaBlock: {
-    gap: 8,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  infoLabel: {
+  metaText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#6B7280',
-    width: 90,
-  },
-  infoValue: {
-    fontSize: 12,
-    color: '#1F2937',
-    flex: 1,
+    color: '#64748B',
+    marginTop: 2,
   },
   reviewButton: {
-    alignSelf: 'flex-end',
-    paddingVertical: 8,
+    paddingVertical: 6,
     paddingHorizontal: 16,
-    borderRadius: 10,
-    backgroundColor: '#4338CA',
+    borderRadius: 12,
+    backgroundColor: '#6366F1',
   },
   reviewText: {
     fontSize: 12,
