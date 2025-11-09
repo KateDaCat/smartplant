@@ -349,16 +349,6 @@ export default function AdminIotAnalyticsScreen() {
   const motionEvents = rangeHistory.filter((entry) => entry.motion_detected).length;
   const activeAlerts = Array.isArray(device.alerts) ? device.alerts.length : 0;
 
-  const anomalies = useMemo(() => {
-    const thresholded = rangeHistory.filter(
-      (entry) =>
-        entry.temperature >= 31 ||
-        entry.humidity >= 92 ||
-        entry.soil_moisture <= 38
-    );
-    return thresholded.slice(-5).reverse();
-  }, [rangeHistory]);
-
   const chartWidth = Math.min(width - 40, 540);
 
   return (
@@ -437,60 +427,6 @@ export default function AdminIotAnalyticsScreen() {
           />
         ))}
 
-        <View style={styles.motionCard}>
-          <View style={styles.motionHeader}>
-            <Ionicons name="pulse-outline" size={18} color="#2563EB" />
-            <Text style={styles.motionTitle}>Operational Notes</Text>
-          </View>
-          <Text style={styles.motionSubtitle}>
-            {motionEvents > 0
-              ? `Detected ${motionEvents} motion events within this window.`
-              : 'No motion events recorded for the selected period.'}
-          </Text>
-          <Text style={styles.motionTrailing}>
-            {activeAlerts > 0
-              ? `Awaiting review of ${activeAlerts} active alert${activeAlerts > 1 ? 's' : ''}.`
-              : 'All sensors are within configured thresholds.'}
-          </Text>
-        </View>
-
-        <View style={styles.anomalyCard}>
-          <View style={styles.anomalyHeader}>
-            <Ionicons name="alert-circle-outline" size={18} color="#B91C1C" />
-            <Text style={styles.anomalyTitle}>Recent Threshold Breaches</Text>
-          </View>
-          {anomalies.length === 0 ? (
-            <Text style={styles.anomalyEmpty}>
-              No anomalies detected for the selected window.
-            </Text>
-          ) : (
-            anomalies.map((entry) => (
-              <View key={entry.timestamp} style={styles.anomalyRow}>
-                <View style={styles.anomalyBadge}>
-                  <Text style={styles.anomalyBadgeText}>
-                    {new Date(entry.timestamp).toLocaleDateString([], {
-                      day: '2-digit',
-                      month: 'short',
-                    })}
-                  </Text>
-                </View>
-                <View style={styles.anomalyDetails}>
-                  <Text style={styles.anomalyTimestamp}>
-                    {new Date(entry.timestamp).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </Text>
-                  <Text style={styles.anomalyMetrics}>
-                    Temp {formatNumber(entry.temperature, 1)}°C · Humidity{' '}
-                    {formatNumber(entry.humidity, 0)}% · Soil{' '}
-                    {formatNumber(entry.soil_moisture, 0)}%
-                  </Text>
-                </View>
-              </View>
-            ))
-          )}
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -662,84 +598,6 @@ const styles = StyleSheet.create({
   },
   metricEmpty: {
     marginTop: 8,
-    fontSize: 12,
-    color: '#64748B',
-  },
-  motionCard: {
-    borderRadius: 18,
-    backgroundColor: '#E8F0FE',
-    padding: 18,
-    borderWidth: 1,
-    borderColor: '#C7D2FE',
-    gap: 8,
-  },
-  motionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  motionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  motionSubtitle: {
-    fontSize: 12,
-    color: '#1E3A8A',
-  },
-  motionTrailing: {
-    fontSize: 12,
-    color: '#475467',
-  },
-  anomalyCard: {
-    borderRadius: 18,
-    backgroundColor: '#FFFFFF',
-    padding: 18,
-    borderWidth: 1,
-    borderColor: '#FECACA',
-    gap: 12,
-  },
-  anomalyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  anomalyTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#991B1B',
-  },
-  anomalyEmpty: {
-    fontSize: 12,
-    color: '#64748B',
-  },
-  anomalyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 6,
-  },
-  anomalyBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: '#FEE2E2',
-  },
-  anomalyBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#B91C1C',
-  },
-  anomalyDetails: {
-    flex: 1,
-  },
-  anomalyTimestamp: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  anomalyMetrics: {
-    marginTop: 2,
     fontSize: 12,
     color: '#64748B',
   },
