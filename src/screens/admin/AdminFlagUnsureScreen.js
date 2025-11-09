@@ -52,8 +52,8 @@ export default function AdminFlagUnsureScreen() {
       <View style={styles.table}>
         <View style={[styles.row, styles.headerRow]}>
           <Text style={[styles.cellWide, styles.headerText]}>Plant</Text>
-          <Text style={[styles.cell, styles.headerText]}>Score</Text>
-          <Text style={[styles.cellAction, styles.headerText, styles.cellActionHeader]}>Action</Text>
+            <Text style={[styles.cell, styles.headerText, styles.cellScoreHeader]}>Score</Text>
+            <Text style={[styles.cellAction, styles.headerText, styles.cellActionHeader]}>Action</Text>
         </View>
 
         <FlatList
@@ -66,7 +66,7 @@ export default function AdminFlagUnsureScreen() {
                 <Text style={styles.plantText}>{item.plant_name}</Text>
                 <Text style={styles.metaText}>{item.location}</Text>
               </View>
-              <Text style={styles.cell}>{toPercent(item.confidence)}</Text>
+              <Text style={[styles.cell, styles.cellScoreValue]}>{toPercent(item.confidence)}</Text>
               <View style={styles.cellAction}>
                 <TouchableOpacity
                   style={styles.reviewButton}
@@ -131,6 +131,7 @@ const styles = StyleSheet.create({
     flex: 0.9,
     fontSize: 13,
     color: '#334155',
+    textAlign: 'left',
   },
   cellWide: {
     flex: 1.8,
@@ -166,7 +167,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
+  cellScoreHeader: {
+    textAlign: 'right',
+    paddingRight: 12,
+  },
+  cellScoreValue: {
+    textAlign: 'right',
+    paddingRight: 12,
+  },
   cellActionHeader: {
     textAlign: 'right',
+    paddingRight: 4,
   },
 });
