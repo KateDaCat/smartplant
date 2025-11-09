@@ -2,14 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  VictoryArea,
-  VictoryAxis,
-  VictoryChart,
-  VictoryLine,
-  VictoryScatter,
-  VictoryTheme,
-} from 'victory-native';
+import { VictoryArea, VictoryAxis, VictoryChart, VictoryLine, VictoryScatter } from 'victory-native';
 
 const formatDate = (iso) => {
   const date = new Date(iso);
@@ -342,7 +335,6 @@ export default function AdminIotDetailScreen({ route }) {
                         <VictoryChart
                           height={220}
                           padding={{ top: 18, bottom: 54, left: 54, right: 20 }}
-                          theme={VictoryTheme.material}
                           domain={{ y: [metric.domain.min, metric.domain.max] }}
                         >
                           <VictoryAxis
