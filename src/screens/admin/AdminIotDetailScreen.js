@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Victory from 'victory-native';
+import { VictoryArea, VictoryAxis, VictoryChart, VictoryLine, VictoryScatter } from 'victory-native';
 
 const formatDate = (iso) => {
   const date = new Date(iso);
@@ -332,12 +332,12 @@ export default function AdminIotDetailScreen({ route }) {
                         Peak {peakLabel} • Low {lowLabel}
                       </Text>
                         {metric.data.length > 0 ? (
-                        <Victory.VictoryChart
+                        <VictoryChart
                           height={220}
                           padding={{ top: 18, bottom: 54, left: 54, right: 20 }}
                           domain={{ y: [metric.domain.min, metric.domain.max] }}
                         >
-                          <Victory.VictoryAxis
+                          <VictoryAxis
                             dependentAxis
                             style={{
                               axis: { stroke: '#E2E8F0' },
@@ -346,7 +346,7 @@ export default function AdminIotDetailScreen({ route }) {
                             }}
                             tickFormat={(value) => formatNumber(value, metric.digits)}
                           />
-                          <Victory.VictoryAxis
+                          <VictoryAxis
                             tickValues={tickValues}
                             tickFormat={labelForTick}
                             style={{
@@ -361,7 +361,7 @@ export default function AdminIotDetailScreen({ route }) {
                               grid: { stroke: 'transparent' },
                             }}
                           />
-                          <Victory.VictoryArea
+                          <VictoryArea
                             data={metric.data}
                             interpolation="monotoneX"
                             style={{
@@ -371,7 +371,7 @@ export default function AdminIotDetailScreen({ route }) {
                               },
                             }}
                           />
-                          <Victory.VictoryLine
+                          <VictoryLine
                             data={metric.data}
                             interpolation="monotoneX"
                             style={{
@@ -381,14 +381,14 @@ export default function AdminIotDetailScreen({ route }) {
                               },
                             }}
                           />
-                          <Victory.VictoryScatter
+                          <VictoryScatter
                             data={metric.data}
                             size={3.5}
                             style={{
                               data: { fill: metric.color },
                             }}
                           />
-                        </Victory.VictoryChart>
+                        </VictoryChart>
                       ) : (
                         <Text style={styles.chartEmpty}>Not enough readings to chart yet.</Text>
                       )}
