@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const formatDate = (iso) => {
@@ -36,6 +36,7 @@ const SensorCard = ({ icon, title, value, unit, helper, alert }) => (
 
 export default function AdminIotDetailScreen({ route }) {
   const device = route?.params?.device;
+  const [historyVisible, setHistoryVisible] = useState(false);
 
   if (!device) {
     return (
@@ -46,6 +47,43 @@ export default function AdminIotDetailScreen({ route }) {
   }
 
   const alerts = Array.isArray(device.alerts) ? device.alerts : [];
+
+  const historySeries = useMemo(() => {
+    if (Array.isArray(device.history) && device.history.length > 0) {
+      return device.history;
+    }
+
+    return [
+      {
+        timestamp: '2025-10-21T11:45:00Z',
+        temperature: 27.6,
+        humidity: 82,
+        soil_moisture: 44,
+        motion_detected: false,
+      },
+      {
+        timestamp: '2025-10-21T10:40:00Z',
+        temperature: 27.2,
+        humidity: 80,
+        soil_moisture: 46,
+        motion_detected: false,
+      },
+      {
+        timestamp: '2025-10-21T09:30:00Z',
+        temperature: 26.4,
+        humidity: 77,
+        soil_moisture: 48,
+        motion_detected: true,
+      },
+      {
+        timestamp: '2025-10-21T08:15:00Z',
+        temperature: 25.9,
+        humidity: 74,
+        soil_moisture: 52,
+        motion_detected: false,
+      },
+    ];
+  }, [device]);
 
   const formatNumber = (val, digits = 1) => {
     if (typeof val !== 'number' || Number.isNaN(val)) return '--';
@@ -131,8 +169,83 @@ export default function AdminIotDetailScreen({ route }) {
             </View>
           </View>
 
+          <TouchableOpacity
+            style={styles.historyButton}
+            activeOpacity={0.85}
+            onPress={() => setHistoryVisible(true)}
+          >
+            <Ionicons name="time-outline" size={18} color="#FFFFFF" />
+            <Text style={styles.historyButtonText}>View Previous Data</Text>
+          </TouchableOpacity>
+
         <Text style={styles.updatedText}>Last updated {formatDate(device.last_updated)}</Text>
       </ScrollView>
+
+        <Modal
+          visible={historyVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setHistoryVisible(false)}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={styles.modalCard}>
+              <View style={styles.modalHeader}>
+                <View>
+                  <Text style={styles.modalTitle}>Historical Sensor Data</Text>
+                  <Text style={styles.modalSubtitle}>
+                    Quick snapshot of recent trends. Hook up to real analytics when ready.
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  accessibilityLabel="Close historical data view"
+                  onPress={() => setHistoryVisible(false)}
+                >
+                  <Ionicons name="close" size={22} color="#0F172A" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView contentContainerStyle={styles.historyList}>
+                {historySeries.map((entry, index) => (
+                  <View key={`${entry.timestamp}-${index}`} style={styles.historyEntry}>
+                    <View style={styles.historyEntryHeader}>
+                      <Ionicons name="calendar-outline" size={14} color="#1E3A8A" />
+                      <Text style={styles.historyTimestamp}>{formatDate(entry.timestamp)}</Text>
+                    </View>
+                    <View style={styles.historyMetricsRow}>
+                      <View style={[styles.historyMetricChip, styles.metricTemperature]}>
+                        <Ionicons name="thermometer-outline" size={14} color="#B91C1C" />
+                        <Text style={styles.historyMetricText}>{formatNumber(entry.temperature, 1)}°C</Text>
+                      </View>
+                      <View style={[styles.historyMetricChip, styles.metricHumidity]}>
+                        <Ionicons name="water-outline" size={14} color="#0369A1" />
+                        <Text style={styles.historyMetricText}>{formatNumber(entry.humidity, 0)}%</Text>
+                      </View>
+                      <View style={[styles.historyMetricChip, styles.metricSoil]}>
+                        <Ionicons name="leaf-outline" size={14} color="#15803D" />
+                        <Text style={styles.historyMetricText}>{formatNumber(entry.soil_moisture, 0)}%</Text>
+                      </View>
+                      <View style={[styles.historyMetricChip, styles.metricMotion, entry.motion_detected && styles.metricMotionActive]}>
+                        <Ionicons
+                          name={entry.motion_detected ? 'walk' : 'walk-outline'}
+                          size={14}
+                          color={entry.motion_detected ? '#1E40AF' : '#475569'}
+                        />
+                        <Text style={styles.historyMetricText}>{entry.motion_detected ? 'Motion' : 'No motion'}</Text>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+
+              <View style={styles.modalFooter}>
+                <Ionicons name="analytics-outline" size={16} color="#2563EB" />
+                <Text style={styles.modalFooterText}>
+                  Tip: integrate a chart kit (e.g. victory-native or react-native-chart-kit) once backend data streams are available.
+                </Text>
+              </View>
+            </View>
+          </View>
+        </Modal>
     </SafeAreaView>
   );
 }
@@ -272,4 +385,127 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 40,
   },
+    historyButton: {
+      marginTop: 4,
+      alignSelf: 'stretch',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+      paddingVertical: 12,
+      borderRadius: 16,
+      backgroundColor: '#2563EB',
+      shadowColor: '#2563EB',
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 4,
+    },
+    historyButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#FFFFFF',
+      letterSpacing: 0.2,
+      textTransform: 'uppercase',
+    },
+    modalBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(15, 23, 42, 0.45)',
+      padding: 20,
+      justifyContent: 'flex-end',
+    },
+    modalCard: {
+      borderTopLeftRadius: 22,
+      borderTopRightRadius: 22,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 28,
+      backgroundColor: '#FFFFFF',
+      gap: 18,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: 16,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: '#0F172A',
+    },
+    modalSubtitle: {
+      marginTop: 4,
+      fontSize: 12,
+      color: '#64748B',
+      lineHeight: 18,
+    },
+    historyList: {
+      gap: 14,
+    },
+    historyEntry: {
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: '#E2E8F0',
+      padding: 14,
+      backgroundColor: '#F9FAFB',
+      gap: 10,
+    },
+    historyEntryHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    historyTimestamp: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: '#1E293B',
+    },
+    historyMetricsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    historyMetricChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 12,
+    },
+    historyMetricText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#1F2937',
+    },
+    metricTemperature: {
+      backgroundColor: '#FEE2E2',
+    },
+    metricHumidity: {
+      backgroundColor: '#DBEAFE',
+    },
+    metricSoil: {
+      backgroundColor: '#DCFCE7',
+    },
+    metricMotion: {
+      backgroundColor: '#E2E8F0',
+    },
+    metricMotionActive: {
+      backgroundColor: '#E0E7FF',
+    },
+    modalFooter: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 10,
+      padding: 14,
+      borderRadius: 16,
+      backgroundColor: '#EEF2FF',
+    },
+    modalFooterText: {
+      flex: 1,
+      fontSize: 12,
+      color: '#1E3A8A',
+      lineHeight: 18,
+    },
 });
