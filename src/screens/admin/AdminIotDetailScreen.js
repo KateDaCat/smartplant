@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { VictoryArea, VictoryAxis, VictoryChart, VictoryLine, VictoryScatter } from 'victory-native';
+import Svg, { Defs, LinearGradient, Path, Polyline, Stop, Circle } from 'react-native-svg';
 
 const formatDate = (iso) => {
   const date = new Date(iso);
@@ -138,7 +138,6 @@ export default function AdminIotDetailScreen({ route }) {
             key: `${config.key}-${index}`,
             raw,
             timestamp: entry.timestamp,
-            index: index + 1,
             label: formatTime(entry.timestamp),
           });
         }
@@ -148,28 +147,32 @@ export default function AdminIotDetailScreen({ route }) {
       const values = points.map((point) => point.raw);
       const min = values.length > 0 ? Math.min(...values) : null;
       const max = values.length > 0 ? Math.max(...values) : null;
-      const span = min !== null && max !== null ? max - min : null;
-      const padding = span !== null && span !== 0 ? span * 0.2 : 1;
-      const domain =
-        min !== null && max !== null
-          ? { min: min - padding, max: max + padding }
-          : { min: 0, max: 1 };
+      const range = min !== null && max !== null ? max - min : null;
+
+      const normalizedPoints = points.map((point) => {
+        if (range === null || range === 0) {
+          return {
+            ...point,
+            normalized: 0.5,
+          };
+        }
+
+        return {
+          ...point,
+          normalized: (point.raw - min) / range,
+        };
+      });
+
+      const delta =
+        points.length > 1 ? points[points.length - 1].raw - points[0].raw : null;
 
       return {
         ...config,
         min,
         max,
-        domain,
-        data: points.map((point) => ({
-          x: point.index,
-          y: point.raw,
-          label: point.label,
-        })),
-        ticks: points.map((point) => ({
-          value: point.index,
-          label: point.label,
-        })),
+        points: normalizedPoints,
         latest: points.length > 0 ? points[points.length - 1].raw : null,
+        delta,
       };
     });
   }, [historySeries]);
@@ -299,25 +302,55 @@ export default function AdminIotDetailScreen({ route }) {
 
               <ScrollView contentContainerStyle={styles.chartList}>
                 {chartMetrics.map((metric) => {
-                  const latestLabel = metric.latest !== null
-                    ? formatMetricValue(metric.latest, metric.digits, metric.unit)
-                    : 'No data yet';
+                  const latestLabel =
+                    metric.latest !== null
+                      ? formatMetricValue(metric.latest, metric.digits, metric.unit)
+                      : 'No data yet';
                   const peakLabel = formatMetricValue(metric.max, metric.digits, metric.unit);
                   const lowLabel = formatMetricValue(metric.min, metric.digits, metric.unit);
-                  const tickValues =
-                    metric.ticks.length > 4
-                      ? metric.ticks
-                          .filter((_, index, arr) =>
-                            index === 0 ||
-                            index === arr.length - 1 ||
-                            index === Math.floor(arr.length / 2)
-                          )
-                          .map((tick) => tick.value)
-                      : metric.ticks.map((tick) => tick.value);
-                  const labelForTick = (value) => {
-                    const tick = metric.ticks.find((item) => item.value === value);
-                    return tick ? tick.label : value;
-                  };
+                  const delta = metric.delta;
+                  const deltaColor =
+                    delta === null || delta === 0 ? '#475467' : delta > 0 ? '#16A34A' : '#DC2626';
+                  const deltaIcon =
+                    delta === null || delta === 0
+                      ? 'remove-outline'
+                      : delta > 0
+                      ? 'arrow-up'
+                      : 'arrow-down';
+                  const deltaLabel =
+                    delta === null || delta === 0
+                      ? 'Stable'
+                      : `${delta > 0 ? '+' : ''}${formatNumber(delta, metric.digits)}${metric.unit}`;
+
+                  const firstLabel = metric.points[0]?.label ?? '--';
+                  const lastLabel = metric.points.length > 0 ? metric.points[metric.points.length - 1].label : '--';
+                  const middleLabel =
+                    metric.points.length > 2
+                      ? metric.points[Math.floor(metric.points.length / 2)].label
+                      : null;
+
+                  const chartWidth = 220;
+                  const chartHeight = 92;
+                  const verticalPadding = 12;
+                  const sparkPoints = metric.points.map((point, index) => {
+                    const x =
+                      metric.points.length > 1
+                        ? (index / (metric.points.length - 1)) * chartWidth
+                        : chartWidth / 2;
+                    const y =
+                      chartHeight -
+                      (point.normalized * (chartHeight - verticalPadding * 2) + verticalPadding);
+                    return { ...point, x, y };
+                  });
+
+                  const polylinePoints = sparkPoints.map((point) => `${point.x},${point.y}`).join(' ');
+                  const areaPath =
+                    sparkPoints.length > 0
+                      ? `M 0 ${chartHeight} ${sparkPoints
+                          .map((point) => `L ${point.x} ${point.y}`)
+                          .join(' ')} L ${chartWidth} ${chartHeight} Z`
+                      : `M 0 ${chartHeight} L ${chartWidth} ${chartHeight} Z`;
+                  const gradientId = `trend-gradient-${metric.key}`;
 
                   return (
                     <View key={metric.key} style={styles.chartCard}>
@@ -328,67 +361,78 @@ export default function AdminIotDetailScreen({ route }) {
                           <Text style={styles.chartSubtitle}>Latest {latestLabel}</Text>
                         </View>
                       </View>
-                      <Text style={styles.chartRange}>
-                        Peak {peakLabel} • Low {lowLabel}
-                      </Text>
-                        {metric.data.length > 0 ? (
-                        <VictoryChart
-                          height={220}
-                          padding={{ top: 18, bottom: 54, left: 54, right: 20 }}
-                          domain={{ y: [metric.domain.min, metric.domain.max] }}
-                        >
-                          <VictoryAxis
-                            dependentAxis
-                            style={{
-                              axis: { stroke: '#E2E8F0' },
-                              grid: { stroke: '#E2E8F0', strokeDasharray: '4,6' },
-                              tickLabels: { fontSize: 11, fill: '#475467' },
-                            }}
-                            tickFormat={(value) => formatNumber(value, metric.digits)}
-                          />
-                          <VictoryAxis
-                            tickValues={tickValues}
-                            tickFormat={labelForTick}
-                            style={{
-                              axis: { stroke: '#E2E8F0' },
-                              tickLabels: {
-                                fontSize: 10,
-                                fill: '#64748B',
-                                angle: -35,
-                                padding: 18,
-                                textAnchor: 'end',
-                              },
-                              grid: { stroke: 'transparent' },
-                            }}
-                          />
-                          <VictoryArea
-                            data={metric.data}
-                            interpolation="monotoneX"
-                            style={{
-                              data: {
-                                fill: `${metric.color}22`,
-                                stroke: 'transparent',
-                              },
-                            }}
-                          />
-                          <VictoryLine
-                            data={metric.data}
-                            interpolation="monotoneX"
-                            style={{
-                              data: {
-                                stroke: metric.color,
-                                strokeWidth: 2,
-                              },
-                            }}
-                          />
-                          <VictoryScatter
-                            data={metric.data}
-                            size={3.5}
-                            style={{
-                              data: { fill: metric.color },
-                            }}
-                          />
-                        </VictoryChart>
+
+                      <View style={styles.chartMetaRow}>
+                        <View style={styles.chartMetaColumn}>
+                          <Text style={styles.chartMetaLabel}>Peak</Text>
+                          <Text style={styles.chartMetaValue}>{peakLabel}</Text>
+                        </View>
+                        <View style={styles.chartMetaDivider} />
+                        <View style={styles.chartMetaColumn}>
+                          <Text style={styles.chartMetaLabel}>Low</Text>
+                          <Text style={styles.chartMetaValue}>{lowLabel}</Text>
+                        </View>
+                        <View style={styles.chartMetaDivider} />
+                        <View style={styles.chartMetaColumn}>
+                          <Text style={styles.chartMetaLabel}>Change</Text>
+                          <View style={styles.chartDeltaRow}>
+                            <Ionicons name={deltaIcon} size={14} color={deltaColor} />
+                            <Text style={[styles.chartDeltaValue, { color: deltaColor }]}>
+                              {deltaLabel}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      {sparkPoints.length > 0 ? (
+                        <>
+                          <View style={styles.sparklineContainer}>
+                            <Svg
+                              width="100%"
+                              height={chartHeight}
+                              viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                              style={styles.sparklineSvg}
+                            >
+                              <Defs>
+                                <LinearGradient
+                                  id={gradientId}
+                                  x1="0"
+                                  y1="0"
+                                  x2="0"
+                                  y2="1"
+                                >
+                                  <Stop offset="0%" stopColor={`${metric.color}33`} />
+                                  <Stop offset="100%" stopColor={`${metric.color}00`} />
+                                </LinearGradient>
+                              </Defs>
+                              <Path d={areaPath} fill={`url(#${gradientId})`} />
+                              <Polyline
+                                points={polylinePoints}
+                                fill="none"
+                                stroke={metric.color}
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              {sparkPoints.map((point) => (
+                                <Circle
+                                  key={`${point.key}-dot`}
+                                  cx={point.x}
+                                  cy={point.y}
+                                  r={3.2}
+                                  fill="#FFFFFF"
+                                  stroke={metric.color}
+                                  strokeWidth={2}
+                                />
+                              ))}
+                            </Svg>
+                          </View>
+                          <View style={styles.chartXAxis}>
+                            <Text style={styles.chartXAxisLabel}>{firstLabel}</Text>
+                            {middleLabel && <Text style={styles.chartXAxisLabel}>{middleLabel}</Text>}
+                            <Text style={styles.chartXAxisLabel}>{lastLabel}</Text>
+                          </View>
+                        </>
                       ) : (
                         <Text style={styles.chartEmpty}>Not enough readings to chart yet.</Text>
                       )}
@@ -424,7 +468,7 @@ export default function AdminIotDetailScreen({ route }) {
                 <View style={styles.modalFooter}>
                   <Ionicons name="analytics-outline" size={16} color="#2563EB" />
                   <Text style={styles.modalFooterText}>
-                    Tip: hook these Victory charts up to your real telemetry API once the backend endpoints are live.
+                    Tip: connect this trend view to live telemetry data once the backend endpoints are ready.
                   </Text>
                 </View>
             </View>
@@ -662,9 +706,66 @@ const styles = StyleSheet.create({
       fontSize: 12,
       color: '#475467',
     },
-    chartRange: {
-      fontSize: 12,
-      color: '#5B6C7C',
+    chartMetaRow: {
+      marginTop: 12,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 12,
+      backgroundColor: '#F1F5F9',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    chartMetaColumn: {
+      flex: 1,
+      gap: 4,
+    },
+    chartMetaLabel: {
+      fontSize: 11,
+      color: '#64748B',
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+    },
+    chartMetaValue: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: '#0F172A',
+    },
+    chartMetaDivider: {
+      width: StyleSheet.hairlineWidth,
+      alignSelf: 'stretch',
+      backgroundColor: '#E2E8F0',
+    },
+    chartDeltaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    chartDeltaValue: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    sparklineContainer: {
+      marginTop: 16,
+      borderRadius: 14,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: '#E2E8F0',
+      padding: 12,
+      width: '100%',
+    },
+    sparklineSvg: {
+      width: '100%',
+    },
+    chartXAxis: {
+      marginTop: 8,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 6,
+    },
+    chartXAxisLabel: {
+      fontSize: 11,
+      color: '#64748B',
     },
     chartEmpty: {
       paddingVertical: 36,
