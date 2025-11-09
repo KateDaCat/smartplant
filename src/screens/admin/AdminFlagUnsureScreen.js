@@ -53,7 +53,7 @@ export default function AdminFlagUnsureScreen() {
         <View style={[styles.row, styles.headerRow]}>
           <Text style={[styles.cellWide, styles.headerText]}>Plant</Text>
           <Text style={[styles.cell, styles.headerText]}>Confidence</Text>
-          <Text style={[styles.cellAction, styles.headerText]}>Action</Text>
+          <Text style={[styles.cellAction, styles.headerText]}>Location</Text>
         </View>
 
         <FlatList
@@ -64,16 +64,16 @@ export default function AdminFlagUnsureScreen() {
             <View style={styles.row}>
               <View style={styles.cellWide}>
                 <Text style={styles.plantText}>{item.plant_name}</Text>
-                <Text style={styles.metaText}>Obs {item.observation_id} • {item.location}</Text>
-              </View>
-              <Text style={styles.cell}>{toPercent(item.confidence)}</Text>
-              <View style={styles.cellAction}>
                 <TouchableOpacity
-                  style={styles.reviewButton}
                   onPress={() => navigation.navigate(ADMIN_FLAG_REVIEW, { observation: item })}
+                  style={styles.reviewLink}
                 >
                   <Text style={styles.reviewText}>Review</Text>
                 </TouchableOpacity>
+              </View>
+              <Text style={styles.cell}>{toPercent(item.confidence)}</Text>
+              <View style={styles.cellAction}>
+                <Text style={styles.metaText}>{item.location}</Text>
               </View>
             </View>
           )}
@@ -155,15 +155,13 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginTop: 2,
   },
-  reviewButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: '#6366F1',
+  reviewLink: {
+    marginTop: 6,
+    alignSelf: 'flex-start',
   },
   reviewText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#4338CA',
   },
 });
