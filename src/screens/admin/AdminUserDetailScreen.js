@@ -139,12 +139,7 @@ export default function AdminUserDetailScreen({ route }) {
         <View style={styles.controlsCard}>
           <Text style={styles.sectionTitle}>Account Controls</Text>
           <View style={styles.controlRow}>
-            <View>
-              <Text style={styles.controlLabel}>Active Status</Text>
-              <Text style={styles.controlHint}>
-                Toggle visibility & access to admin console
-              </Text>
-            </View>
+            <Text style={styles.controlLabel}>Active Status</Text>
             <View style={styles.toggleGroup}>
               <Text
                 style={[
@@ -166,12 +161,7 @@ export default function AdminUserDetailScreen({ route }) {
           <View style={styles.divider} />
 
           <View style={styles.controlRow}>
-            <View>
-              <Text style={styles.controlLabel}>Assign Role</Text>
-              <Text style={styles.controlHint}>
-                Choose permissions for this teammate
-              </Text>
-            </View>
+            <Text style={styles.controlLabel}>Assign Role</Text>
             <TouchableOpacity
               style={styles.roleSelect}
               onPress={() => setRoleMenuOpen((prev) => !prev)}
@@ -345,11 +335,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#0F172A',
-  },
-  controlHint: {
-    marginTop: 4,
-    fontSize: 12,
-    color: '#6B7280',
   },
   statusToggle: {
     flexDirection: 'row',
