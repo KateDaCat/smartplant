@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 
 const FALLBACK_USER = {
   user_id: '-',
@@ -10,6 +10,7 @@ const FALLBACK_USER = {
   phone: 'N/A',
   created_at: 'N/A',
   active: false,
+  avatar: null,
 };
 
 const formatDate = (iso) => {
@@ -27,10 +28,16 @@ const DetailRow = ({ label, value }) => (
 
 export default function AdminUserDetailScreen({ route }) {
   const user = route?.params?.user ?? FALLBACK_USER;
+  const avatarSource = user.avatar
+    ? { uri: user.avatar }
+    : require('../../../assets/logo.jpg');
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
+        <View style={styles.avatarWrapper}>
+          <Image source={avatarSource} style={styles.avatar} resizeMode="cover" />
+        </View>
         <Text style={styles.title}>{user.username}</Text>
         <Text style={styles.subtitle}>User ID: {user.user_id}</Text>
 
@@ -67,6 +74,20 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
+  },
+  avatarWrapper: {
+    alignSelf: 'center',
+    width: 82,
+    height: 82,
+    borderRadius: 41,
+    backgroundColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
   },
   title: {
     fontSize: 22,
