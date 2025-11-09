@@ -363,7 +363,7 @@ export default function AdminIotAnalyticsScreen() {
           <Ionicons name="arrow-back" size={20} color="#0F172A" />
           <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
-        <View>
+        <View style={styles.headerTitles}>
           <Text style={styles.headerTitle}>Historical Analytics</Text>
           <Text style={styles.headerSubtitle}>
             {device.device_name ?? device.device_id ?? 'Unknown Device'}
@@ -443,6 +443,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 16,
     backgroundColor: '#F5F6FA',
   },
@@ -458,15 +459,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#0F172A',
   },
+  headerTitles: {
+    flex: 1,
+    alignItems: 'center',
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#0F172A',
+    textAlign: 'center',
   },
   headerSubtitle: {
     fontSize: 13,
     color: '#475467',
     marginTop: 2,
+    textAlign: 'center',
   },
   rangeRow: {
     flexDirection: 'row',
