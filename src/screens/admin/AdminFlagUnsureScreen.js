@@ -52,8 +52,8 @@ export default function AdminFlagUnsureScreen() {
       <View style={styles.table}>
         <View style={[styles.row, styles.headerRow]}>
           <Text style={[styles.cellWide, styles.headerText]}>Plant</Text>
-          <Text style={[styles.cell, styles.headerText]}>Confidence</Text>
-          <Text style={[styles.cellAction, styles.headerText]}>Action</Text>
+          <Text style={[styles.cell, styles.headerText]}>Score</Text>
+          <Text style={[styles.cellAction, styles.headerText, styles.cellActionHeader]}>Action</Text>
         </View>
 
         <FlatList
@@ -165,5 +165,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  cellActionHeader: {
+    textAlign: 'right',
   },
 });
