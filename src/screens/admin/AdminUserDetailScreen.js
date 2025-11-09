@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Switch, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const FALLBACK_USER = {
   user_id: '-',
@@ -12,6 +13,8 @@ const FALLBACK_USER = {
   active: false,
   avatar: null,
 };
+
+const ROLE_OPTIONS = ['Admin', 'Plant Researcher', 'User'];
 
 const formatDate = (iso) => {
   if (!iso || iso === 'N/A') return 'Pending sync';
@@ -28,9 +31,70 @@ const DetailRow = ({ label, value }) => (
 
 export default function AdminUserDetailScreen({ route }) {
   const user = route?.params?.user ?? FALLBACK_USER;
-  const avatarSource = user.avatar
-    ? { uri: user.avatar }
+  const onUpdate = route?.params?.onUpdate;
+
+  const [currentUser, setCurrentUser] = useState(user);
+  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setCurrentUser(user);
+  }, [user]);
+
+  const avatarSource = currentUser.avatar
+    ? { uri: currentUser.avatar }
     : require('../../../assets/logo.jpg');
+
+  const applyUpdate = (updates) => {
+    setCurrentUser((prev) => {
+      const updated = { ...prev, ...updates };
+      if (onUpdate) {
+        onUpdate(updated);
+      }
+      return updated;
+    });
+  };
+
+  const confirmRoleChange = (role) => {
+    if (role === currentUser.role) {
+      setRoleMenuOpen(false);
+      return;
+    }
+
+    Alert.alert(
+      'Assign Role',
+      `Assign ${role} role to ${currentUser.username}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Confirm',
+          onPress: () => {
+            applyUpdate({ role });
+            setRoleMenuOpen(false);
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const confirmActiveChange = (nextValue) => {
+    if (nextValue === currentUser.active) {
+      return;
+    }
+
+    Alert.alert(
+      nextValue ? 'Activate Account' : 'Deactivate Account',
+      `Are you sure you want to ${nextValue ? 'activate' : 'deactivate'} ${currentUser.username}'s account?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: nextValue ? 'Activate' : 'Deactivate',
+          style: nextValue ? 'default' : 'destructive',
+          onPress: () => applyUpdate({ active: nextValue }),
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -38,20 +102,69 @@ export default function AdminUserDetailScreen({ route }) {
         <View style={styles.avatarWrapper}>
           <Image source={avatarSource} style={styles.avatar} resizeMode="cover" />
         </View>
-        <Text style={styles.title}>{user.username}</Text>
-        <Text style={styles.subtitle}>User ID: {user.user_id}</Text>
+        <Text style={styles.title}>{currentUser.username}</Text>
+        <Text style={styles.subtitle}>User ID: {currentUser.user_id}</Text>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Profile</Text>
-          <DetailRow label="Email" value={user.email} />
-          <DetailRow label="Phone" value={user.phone} />
-          <DetailRow label="Role" value={user.role} />
+          <DetailRow label="Email" value={currentUser.email} />
+          <DetailRow label="Phone" value={currentUser.phone} />
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>System</Text>
-          <DetailRow label="Status" value={user.active ? 'Active' : 'Inactive'} />
-          <DetailRow label="Created" value={formatDate(user.created_at)} />
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Status</Text>
+            <View style={styles.statusToggle}>
+              <Text
+                style={[
+                  styles.statusText,
+                  currentUser.active ? styles.statusActive : styles.statusInactive,
+                ]}
+              >
+                {currentUser.active ? 'Active' : 'Inactive'}
+              </Text>
+              <Switch
+                value={currentUser.active}
+                onValueChange={confirmActiveChange}
+                trackColor={{ false: '#D0D7DD', true: '#3AA272' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Role</Text>
+            <TouchableOpacity
+              style={styles.roleSelect}
+              onPress={() => setRoleMenuOpen((prev) => !prev)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.roleSelectText}>{currentUser.role}</Text>
+              <Ionicons
+                name={roleMenuOpen ? 'chevron-up' : 'chevron-down'}
+                size={16}
+                color="#1F2A37"
+              />
+            </TouchableOpacity>
+          </View>
+
+          {roleMenuOpen && (
+            <View style={styles.roleDropdown}>
+              {ROLE_OPTIONS.map((role) => (
+                <TouchableOpacity
+                  key={role}
+                  style={styles.roleOption}
+                  onPress={() => confirmRoleChange(role)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.roleOptionText}>{role}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          <DetailRow label="Created" value={formatDate(currentUser.created_at)} />
         </View>
       </View>
     </SafeAreaView>
@@ -118,6 +231,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 2,
   },
   detailLabel: {
     fontSize: 13,
@@ -129,5 +243,53 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     maxWidth: '60%',
     textAlign: 'right',
+  },
+  statusToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  statusActive: {
+    color: '#3AA272',
+  },
+  statusInactive: {
+    color: '#B03A2E',
+  },
+  roleSelect: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: '#EEF2F7',
+  },
+  roleSelectText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  roleDropdown: {
+    marginTop: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D4DBE3',
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+  },
+  roleOption: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  roleOptionText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#1F2937',
   },
 });
