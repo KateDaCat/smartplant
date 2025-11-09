@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Switch, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const FALLBACK_USER = {
@@ -98,24 +98,54 @@ export default function AdminUserDetailScreen({ route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.avatarWrapper}>
-          <Image source={avatarSource} style={styles.avatar} resizeMode="cover" />
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.headerCard}>
+          <View style={styles.avatarWrapper}>
+            <Image source={avatarSource} style={styles.avatar} resizeMode="cover" />
+          </View>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>{currentUser.username}</Text>
+            <Text style={styles.subtitle}>User ID: {currentUser.user_id}</Text>
+            <View
+              style={[
+                styles.statusBadge,
+                currentUser.active ? styles.statusBadgeActive : styles.statusBadgeInactive,
+              ]}
+            >
+              <Ionicons
+                name={currentUser.active ? 'checkmark-circle' : 'pause'}
+                size={14}
+                color={currentUser.active ? '#14532D' : '#7F1D1D'}
+              />
+              <Text
+                style={[
+                  styles.statusBadgeText,
+                  currentUser.active ? styles.statusBadgeTextActive : styles.statusBadgeTextInactive,
+                ]}
+              >
+                {currentUser.active ? 'Active' : 'Inactive'}
+              </Text>
+            </View>
+          </View>
         </View>
-        <Text style={styles.title}>{currentUser.username}</Text>
-        <Text style={styles.subtitle}>User ID: {currentUser.user_id}</Text>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Profile</Text>
+        <View style={styles.infoCard}>
+          <Text style={styles.sectionTitle}>Contact Details</Text>
           <DetailRow label="Email" value={currentUser.email} />
           <DetailRow label="Phone" value={currentUser.phone} />
+          <DetailRow label="Created" value={formatDate(currentUser.created_at)} />
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>System</Text>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Status</Text>
-            <View style={styles.statusToggle}>
+        <View style={styles.controlsCard}>
+          <Text style={styles.sectionTitle}>Account Controls</Text>
+          <View style={styles.controlRow}>
+            <View>
+              <Text style={styles.controlLabel}>Active Status</Text>
+              <Text style={styles.controlHint}>
+                Toggle visibility & access to admin console
+              </Text>
+            </View>
+            <View style={styles.toggleGroup}>
               <Text
                 style={[
                   styles.statusText,
@@ -133,8 +163,15 @@ export default function AdminUserDetailScreen({ route }) {
             </View>
           </View>
 
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Role</Text>
+          <View style={styles.divider} />
+
+          <View style={styles.controlRow}>
+            <View>
+              <Text style={styles.controlLabel}>Assign Role</Text>
+              <Text style={styles.controlHint}>
+                Choose permissions for this teammate
+              </Text>
+            </View>
             <TouchableOpacity
               style={styles.roleSelect}
               onPress={() => setRoleMenuOpen((prev) => !prev)}
@@ -163,10 +200,8 @@ export default function AdminUserDetailScreen({ route }) {
               ))}
             </View>
           )}
-
-          <DetailRow label="Created" value={formatDate(currentUser.created_at)} />
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -177,10 +212,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6F9F4',
     padding: 20,
   },
-  card: {
+  content: {
+    paddingBottom: 40,
+    gap: 20,
+  },
+  headerCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 18,
-    padding: 20,
+    padding: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 20,
     shadowColor: '#000',
     shadowOpacity: 0.05,
@@ -202,6 +243,10 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  headerText: {
+    flex: 1,
+    gap: 6,
+  },
   title: {
     fontSize: 22,
     fontWeight: '700',
@@ -214,11 +259,58 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  section: {
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    paddingTop: 16,
-    gap: 12,
+  statusBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  statusBadgeActive: {
+    backgroundColor: '#DCFCE7',
+  },
+  statusBadgeInactive: {
+    backgroundColor: '#FEE2E2',
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  statusBadgeTextActive: {
+    color: '#166534',
+  },
+  statusBadgeTextInactive: {
+    color: '#7F1D1D',
+  },
+  infoCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOpacity: 0.02,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  controlsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    gap: 16,
+    borderWidth: 1,
+    borderColor: '#DBE2F0',
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 7,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
   sectionTitle: {
     fontSize: 14,
@@ -243,6 +335,21 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     maxWidth: '60%',
     textAlign: 'right',
+  },
+  controlRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  controlLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  controlHint: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#6B7280',
   },
   statusToggle: {
     flexDirection: 'row',
@@ -291,5 +398,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: '#1F2937',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
   },
 });
