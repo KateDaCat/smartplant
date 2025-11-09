@@ -122,10 +122,6 @@ export default function AdminIotScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.headerTitle}>IoT Monitoring</Text>
-      <Text style={styles.headerSubtitle}>
-        Overview of active sensors in the field. Tap `View` to drill into analytics.
-      </Text>
-
         <View style={styles.searchBar}>
           <Ionicons name="search" size={16} color="#64748B" />
           <TextInput
@@ -204,12 +200,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#1F2A37',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#4B5563',
-    marginTop: 4,
-    marginBottom: 16,
   },
   table: {
     backgroundColor: '#FFFFFF',

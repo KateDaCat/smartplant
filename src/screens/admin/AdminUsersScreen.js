@@ -75,10 +75,6 @@ export default function AdminUsersScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>User Directory</Text>
-      <Text style={styles.subtitle}>
-        Toggle account access and inspect user details. Hook these interactions to backend actions when the API is available.
-      </Text>
-
       <View style={styles.searchBar}>
         <Ionicons name="search" size={16} color="#64748B" />
         <TextInput
@@ -181,12 +177,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#1E2D3D',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#4E5D6A',
-    marginTop: 8,
-    lineHeight: 20,
   },
     list: {
     marginTop: 24,
