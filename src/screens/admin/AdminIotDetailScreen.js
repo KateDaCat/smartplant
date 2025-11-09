@@ -2,6 +2,14 @@ import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  VictoryArea,
+  VictoryAxis,
+  VictoryChart,
+  VictoryLine,
+  VictoryScatter,
+  VictoryTheme,
+} from 'victory-native';
 
 const formatDate = (iso) => {
   const date = new Date(iso);
@@ -13,8 +21,6 @@ const formatTime = (iso) => {
   if (Number.isNaN(date.getTime())) return '--';
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
-
-const BAR_MAX_HEIGHT = 120;
 
 const SensorCard = ({ icon, title, value, unit, helper, alert }) => (
   <View style={[styles.sensorCard, alert ? styles.sensorCardAlert : styles.sensorCardOk]}>
@@ -132,32 +138,45 @@ export default function AdminIotDetailScreen({ route }) {
     ];
 
     return configs.map((config) => {
-      const values = historySeries
-        .map(config.getValue)
-        .filter((val) => typeof val === 'number' && !Number.isNaN(val));
+      const points = historySeries.reduce((acc, entry, index) => {
+        const raw = config.getValue(entry);
+        if (typeof raw === 'number' && !Number.isNaN(raw)) {
+          acc.push({
+            key: `${config.key}-${index}`,
+            raw,
+            timestamp: entry.timestamp,
+            index: index + 1,
+            label: formatTime(entry.timestamp),
+          });
+        }
+        return acc;
+      }, []);
 
+      const values = points.map((point) => point.raw);
       const min = values.length > 0 ? Math.min(...values) : null;
       const max = values.length > 0 ? Math.max(...values) : null;
-      const delta =
-        min !== null && max !== null ? Math.max(0.0001, max - min) : 1;
+      const span = min !== null && max !== null ? max - min : null;
+      const padding = span !== null && span !== 0 ? span * 0.2 : 1;
+      const domain =
+        min !== null && max !== null
+          ? { min: min - padding, max: max + padding }
+          : { min: 0, max: 1 };
 
       return {
         ...config,
         min,
         max,
-        points: historySeries.map((entry, index) => {
-          const raw = config.getValue(entry);
-          const normalized =
-            typeof raw === 'number' && min !== null && max !== null
-              ? (raw - min) / delta
-              : 0.5;
-          return {
-            key: `${config.key}-${index}`,
-            raw,
-            normalized: Math.max(0.1, Math.min(1, normalized)),
-            timestamp: entry.timestamp,
-          };
-        }),
+        domain,
+        data: points.map((point) => ({
+          x: point.index,
+          y: point.raw,
+          label: point.label,
+        })),
+        ticks: points.map((point) => ({
+          value: point.index,
+          label: point.label,
+        })),
+        latest: points.length > 0 ? points[points.length - 1].raw : null,
       };
     });
   }, [historySeries]);
@@ -286,39 +305,104 @@ export default function AdminIotDetailScreen({ route }) {
               </View>
 
               <ScrollView contentContainerStyle={styles.chartList}>
-                {chartMetrics.map((metric) => (
-                  <View key={metric.key} style={styles.chartCard}>
-                    <View style={styles.chartHeader}>
-                      <View style={[styles.chartLegendDot, { backgroundColor: metric.color }]} />
-                      <View style={styles.chartHeaderText}>
-                        <Text style={styles.chartTitle}>{metric.label}</Text>
-                        <Text style={styles.chartSubtitle}>
-                          Latest {formatMetricValue(metric.points.at(-1)?.raw, metric.digits, metric.unit)}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text style={styles.chartRange}>
-                      Peak {formatMetricValue(metric.max, metric.digits, metric.unit)} • Low{' '}
-                      {formatMetricValue(metric.min, metric.digits, metric.unit)}
-                    </Text>
-                    <View style={styles.chartBars}>
-                      {metric.points.map((point, index) => (
-                        <View key={point.key} style={styles.chartBarWrapper}>
-                          <View
-                            style={[
-                              styles.chartBar,
-                              {
-                                height: Math.max(12, Math.round(point.normalized * BAR_MAX_HEIGHT)),
-                                backgroundColor: metric.color,
-                              },
-                            ]}
-                          />
-                          <Text style={styles.chartBarLabel}>{formatTime(point.timestamp)}</Text>
+                {chartMetrics.map((metric) => {
+                  const latestLabel = metric.latest !== null
+                    ? formatMetricValue(metric.latest, metric.digits, metric.unit)
+                    : 'No data yet';
+                  const peakLabel = formatMetricValue(metric.max, metric.digits, metric.unit);
+                  const lowLabel = formatMetricValue(metric.min, metric.digits, metric.unit);
+                  const tickValues =
+                    metric.ticks.length > 4
+                      ? metric.ticks
+                          .filter((_, index, arr) =>
+                            index === 0 ||
+                            index === arr.length - 1 ||
+                            index === Math.floor(arr.length / 2)
+                          )
+                          .map((tick) => tick.value)
+                      : metric.ticks.map((tick) => tick.value);
+                  const labelForTick = (value) => {
+                    const tick = metric.ticks.find((item) => item.value === value);
+                    return tick ? tick.label : value;
+                  };
+
+                  return (
+                    <View key={metric.key} style={styles.chartCard}>
+                      <View style={styles.chartHeader}>
+                        <View style={[styles.chartLegendDot, { backgroundColor: metric.color }]} />
+                        <View style={styles.chartHeaderText}>
+                          <Text style={styles.chartTitle}>{metric.label}</Text>
+                          <Text style={styles.chartSubtitle}>Latest {latestLabel}</Text>
                         </View>
-                      ))}
+                      </View>
+                      <Text style={styles.chartRange}>
+                        Peak {peakLabel} • Low {lowLabel}
+                      </Text>
+                      {metric.data.length > 0 ? (
+                        <VictoryChart
+                          height={220}
+                          padding={{ top: 18, bottom: 54, left: 54, right: 20 }}
+                          theme={VictoryTheme.material}
+                          domain={{ y: [metric.domain.min, metric.domain.max] }}
+                        >
+                          <VictoryAxis
+                            dependentAxis
+                            style={{
+                              axis: { stroke: '#E2E8F0' },
+                              grid: { stroke: '#E2E8F0', strokeDasharray: '4,6' },
+                              tickLabels: { fontSize: 11, fill: '#475467' },
+                            }}
+                            tickFormat={(value) => formatNumber(value, metric.digits)}
+                          />
+                          <VictoryAxis
+                            tickValues={tickValues}
+                            tickFormat={labelForTick}
+                            style={{
+                              axis: { stroke: '#E2E8F0' },
+                              tickLabels: {
+                                fontSize: 10,
+                                fill: '#64748B',
+                                angle: -35,
+                                padding: 18,
+                                textAnchor: 'end',
+                              },
+                              grid: { stroke: 'transparent' },
+                            }}
+                          />
+                          <VictoryArea
+                            data={metric.data}
+                            interpolation="monotoneX"
+                            style={{
+                              data: {
+                                fill: `${metric.color}22`,
+                                stroke: 'transparent',
+                              },
+                            }}
+                          />
+                          <VictoryLine
+                            data={metric.data}
+                            interpolation="monotoneX"
+                            style={{
+                              data: {
+                                stroke: metric.color,
+                                strokeWidth: 2,
+                              },
+                            }}
+                          />
+                          <VictoryScatter
+                            data={metric.data}
+                            size={3.5}
+                            style={{
+                              data: { fill: metric.color },
+                            }}
+                          />
+                        </VictoryChart>
+                      ) : (
+                        <Text style={styles.chartEmpty}>Not enough readings to chart yet.</Text>
+                      )}
                     </View>
-                  </View>
-                ))}
+                  );
+                })}
 
                 {motionTimeline.length > 0 && (
                   <View style={styles.motionSection}>
@@ -345,12 +429,12 @@ export default function AdminIotDetailScreen({ route }) {
                 )}
               </ScrollView>
 
-              <View style={styles.modalFooter}>
-                <Ionicons name="analytics-outline" size={16} color="#2563EB" />
-                <Text style={styles.modalFooterText}>
-                  Tip: integrate a chart kit (e.g. victory-native or react-native-chart-kit) once backend data streams are available.
-                </Text>
-              </View>
+                <View style={styles.modalFooter}>
+                  <Ionicons name="analytics-outline" size={16} color="#2563EB" />
+                  <Text style={styles.modalFooterText}>
+                    Tip: hook these Victory charts up to your real telemetry API once the backend endpoints are live.
+                  </Text>
+                </View>
             </View>
           </View>
         </Modal>
@@ -590,26 +674,10 @@ const styles = StyleSheet.create({
       fontSize: 12,
       color: '#5B6C7C',
     },
-    chartBars: {
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      justifyContent: 'space-between',
-      gap: 12,
-      height: BAR_MAX_HEIGHT + 24,
-      paddingHorizontal: 4,
-    },
-    chartBarWrapper: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'flex-end',
-    },
-    chartBar: {
-      width: 18,
-      borderRadius: 9,
-    },
-    chartBarLabel: {
-      marginTop: 6,
-      fontSize: 11,
+    chartEmpty: {
+      paddingVertical: 36,
+      textAlign: 'center',
+      fontSize: 12,
       color: '#64748B',
     },
     motionSection: {
