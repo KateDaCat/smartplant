@@ -91,27 +91,28 @@ export default function AdminUsersScreen() {
           </View>
         )}
         {filteredUsers.map((user) => (
-          <View key={user.user_id} style={styles.card}>
+            <View key={user.user_id} style={styles.card}>
               <Text style={[styles.username, !user.active && styles.usernameInactive]}>
                 {user.username}
               </Text>
-              <Text style={styles.metaId}>User ID: {user.user_id}</Text>
-              <Text style={styles.phone}>{user.phone}</Text>
-
               <View style={styles.metaRow}>
-              <TouchableOpacity
-                activeOpacity={0.75}
-                style={styles.viewButton}
+                <View style={styles.metaTextCol}>
+                  <Text style={styles.metaId}>User ID: {user.user_id}</Text>
+                  <Text style={styles.phone}>{user.phone}</Text>
+                </View>
+                <TouchableOpacity
+                  activeOpacity={0.75}
+                  style={styles.viewButton}
                   onPress={() =>
                     navigation.navigate(ADMIN_USER_DETAIL, {
                       user,
                       onUpdate: handleUserUpdate,
                     })
                   }
-              >
+                >
                   <Text style={styles.viewButtonText}>View</Text>
-              </TouchableOpacity>
-            </View>
+                </TouchableOpacity>
+              </View>
           </View>
         ))}
       </View>
@@ -183,9 +184,13 @@ const styles = StyleSheet.create({
       letterSpacing: 0.3,
     },
     metaRow: {
-      marginTop: 8,
-      justifyContent: 'flex-end',
-      alignItems: 'center',
+      marginTop: 4,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+    },
+    metaTextCol: {
+      gap: 2,
     },
     viewButton: {
       alignSelf: 'flex-end',
