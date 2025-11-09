@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { SafeAreaView, Text, StyleSheet, View, Switch, TouchableOpacity } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { SafeAreaView, Text, StyleSheet, View, Switch, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { ADMIN_USER_DETAIL } from '../../navigation/routes';
@@ -38,6 +38,7 @@ const ROLE_OPTIONS = ['Plant Researcher', 'Admin', 'User'];
 
 export default function AdminUsersScreen() {
   const [users, setUsers] = useState(INITIAL_USERS);
+  const [searchQuery, setSearchQuery] = useState('');
   const [openRoleId, setOpenRoleId] = useState(null);
   const navigation = useNavigation();
 
@@ -57,6 +58,20 @@ export default function AdminUsersScreen() {
     );
   };
 
+  const filteredUsers = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    return users
+      .filter((user) => {
+        if (!normalizedQuery) return true;
+        return (
+          user.username.toLowerCase().includes(normalizedQuery) ||
+          user.email.toLowerCase().includes(normalizedQuery) ||
+          user.phone.toLowerCase().includes(normalizedQuery)
+        );
+      })
+      .sort((a, b) => a.username.localeCompare(b.username));
+  }, [searchQuery, users]);
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>User Directory</Text>
@@ -64,8 +79,30 @@ export default function AdminUsersScreen() {
         Toggle account access and inspect user details. Hook these interactions to backend actions when the API is available.
       </Text>
 
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={16} color="#64748B" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by username, email, or phone"
+          placeholderTextColor="#94A3B8"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton} accessibilityLabel="Clear search">
+            <Ionicons name="close-circle" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+        )}
+      </View>
+
       <View style={styles.list}>
-        {users.map((user) => (
+        {filteredUsers.length === 0 && (
+          <View style={styles.emptyState}>
+            <Ionicons name="people-outline" size={20} color="#94A3B8" />
+            <Text style={styles.emptyStateText}>No users found. Try a different search.</Text>
+          </View>
+        )}
+        {filteredUsers.map((user) => (
           <View key={user.user_id} style={styles.card}>
             <View style={styles.headerRow}>
               <View>
@@ -151,10 +188,30 @@ const styles = StyleSheet.create({
     marginTop: 8,
     lineHeight: 20,
   },
-  list: {
+    list: {
     marginTop: 24,
     gap: 16,
   },
+    searchBar: {
+      marginTop: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 14,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: '#E2E8F0',
+      gap: 8,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 13.5,
+      color: '#0F172A',
+    },
+    clearButton: {
+      padding: 4,
+    },
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
@@ -262,5 +319,20 @@ const styles = StyleSheet.create({
       fontSize: 13,
       color: '#1F2A37',
       fontWeight: '500',
+    },
+    emptyState: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 16,
+      paddingVertical: 32,
+      paddingHorizontal: 20,
+      borderWidth: 1,
+      borderColor: '#E4E9EE',
+      alignItems: 'center',
+      gap: 10,
+    },
+    emptyStateText: {
+      fontSize: 13,
+      color: '#64748B',
+      textAlign: 'center',
     },
 });
