@@ -156,11 +156,12 @@ const styles = StyleSheet.create({
     },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
+      borderRadius: 14,
+      paddingVertical: 16,
+      paddingHorizontal: 18,
     borderWidth: 1,
     borderColor: '#E4E9EE',
-      gap: 6,
+      gap: 4,
   },
   username: {
     fontSize: 18,
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
     metaRow: {
-      marginTop: 14,
+      marginTop: 10,
       flexDirection: 'row',
       justifyContent: 'flex-end',
       alignItems: 'center',
