@@ -272,12 +272,12 @@ const MetricChart = ({ data, metric, rangeKey, chartWidth }) => {
             strokeLinejoin="round"
           />
 
-          {points.slice(-2).map((point, index) => (
+          {points.map((point, index) => (
             <Circle
               key={`${metric.key}-dot-${index}`}
               cx={point.x}
               cy={point.y}
-              r={4}
+              r={3.2}
               fill="#FFFFFF"
               stroke={color}
               strokeWidth={2}
