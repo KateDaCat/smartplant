@@ -53,7 +53,7 @@ export default function AdminFlagUnsureScreen() {
         <View style={[styles.row, styles.headerRow]}>
           <Text style={[styles.cellWide, styles.headerText]}>Plant</Text>
           <Text style={[styles.cell, styles.headerText]}>Confidence</Text>
-          <Text style={[styles.cellAction, styles.headerText]}>Location</Text>
+          <Text style={[styles.cellAction, styles.headerText]}>Action</Text>
         </View>
 
         <FlatList
@@ -64,16 +64,16 @@ export default function AdminFlagUnsureScreen() {
             <View style={styles.row}>
               <View style={styles.cellWide}>
                 <Text style={styles.plantText}>{item.plant_name}</Text>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate(ADMIN_FLAG_REVIEW, { observation: item })}
-                  style={styles.reviewLink}
-                >
-                  <Text style={styles.reviewText}>Review</Text>
-                </TouchableOpacity>
+                <Text style={styles.metaText}>{item.location}</Text>
               </View>
               <Text style={styles.cell}>{toPercent(item.confidence)}</Text>
               <View style={styles.cellAction}>
-                <Text style={styles.metaText}>{item.location}</Text>
+                <TouchableOpacity
+                  style={styles.reviewButton}
+                  onPress={() => navigation.navigate(ADMIN_FLAG_REVIEW, { observation: item })}
+                >
+                  <Text style={styles.reviewText}>Review</Text>
+                </TouchableOpacity>
               </View>
             </View>
           )}
@@ -155,13 +155,15 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginTop: 2,
   },
-  reviewLink: {
-    marginTop: 6,
-    alignSelf: 'flex-start',
+  reviewButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#6366F1',
   },
   reviewText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#4338CA',
+    color: '#FFFFFF',
   },
 });
