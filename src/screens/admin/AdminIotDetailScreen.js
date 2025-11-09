@@ -1,19 +1,93 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Defs, LinearGradient, Path, Polyline, Stop, Circle } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
+import { ADMIN_IOT_ANALYTICS } from '../../navigation/routes';
 
 const formatDate = (iso) => {
   const date = new Date(iso);
   return Number.isNaN(date.getTime()) ? iso : date.toLocaleString();
 };
 
-const formatTime = (iso) => {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '--';
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const HOURS = 60 * 60 * 1000;
+const DAYS = 24 * HOURS;
+
+const generateMockHistory = () => {
+  const now = new Date();
+  const start = new Date(now.getTime() - 7 * DAYS);
+  const steps = 56; // 7 days @ 3 hour intervals
+
+  return Array.from({ length: steps + 1 }, (_, index) => {
+    const pointDate = new Date(start.getTime() + index * 3 * HOURS);
+    const phase = index / 3.4;
+    const tempBase = 25 + 3.5 * Math.sin(phase) + 0.6 * Math.cos(phase * 1.2);
+    const humidityBase = 68 + 12 * Math.sin(phase / 1.6 + 1) + 3 * Math.cos(phase / 2.8);
+    const soilBase = 52 + 7 * Math.cos(phase / 1.3 + 0.4) + 2 * Math.sin(phase / 4);
+    const motionDetected = ((index + 3) % 9 === 0) || ((index + 5) % 13 === 0);
+
+    return {
+      timestamp: pointDate.toISOString(),
+      temperature: Number(tempBase.toFixed(1)),
+      humidity: Math.max(40, Math.min(98, Math.round(humidityBase))),
+      soil_moisture: Math.max(32, Math.min(90, Math.round(soilBase))),
+      motion_detected: motionDetected,
+    };
+  });
+};
+
+const coerceMetricNumber = (value) => {
+  const numeric = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+};
+
+const normalizeHistoryEntry = (entry) => {
+  if (!entry) return null;
+
+  const timestamp =
+    entry.timestamp ??
+    entry.recorded_at ??
+    entry.created_at ??
+    entry.time ??
+    entry.datetime;
+
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const readings = entry.readings ?? entry.metrics ?? entry;
+
+  const temperature =
+    coerceMetricNumber(readings?.temperature ?? readings?.temp ?? entry.temperature);
+  const humidity =
+    coerceMetricNumber(readings?.humidity ?? readings?.relative_humidity ?? entry.humidity);
+  const soil =
+    coerceMetricNumber(
+      readings?.soil_moisture ??
+        readings?.soilMoisture ??
+        readings?.soil ??
+        entry.soil_moisture
+    );
+
+  if ([temperature, humidity, soil].some((val) => val === null)) {
+    return null;
+  }
+
+  const motionDetected =
+    typeof readings?.motion_detected === 'boolean'
+      ? readings.motion_detected
+      : typeof entry.motion_detected === 'boolean'
+        ? entry.motion_detected
+        : Boolean(readings?.motion ?? readings?.motionDetected);
+
+  return {
+    timestamp: date.toISOString(),
+    temperature,
+    humidity,
+    soil_moisture: soil,
+    motion_detected: motionDetected,
+  };
 };
 
 const SensorCard = ({ icon, title, value, unit, helper, alert }) => (
@@ -45,7 +119,6 @@ const SensorCard = ({ icon, title, value, unit, helper, alert }) => (
 export default function AdminIotDetailScreen({ route }) {
   const navigation = useNavigation();
   const device = route?.params?.device;
-  const [historyVisible, setHistoryVisible] = useState(false);
 
   if (!device) {
     return (
@@ -58,136 +131,31 @@ export default function AdminIotDetailScreen({ route }) {
   const alerts = Array.isArray(device.alerts) ? device.alerts : [];
 
   const historySeries = useMemo(() => {
-    if (Array.isArray(device.history) && device.history.length > 0) {
-      return device.history;
-    }
+    const normalizedHistory = Array.isArray(device.history)
+      ? device.history.map(normalizeHistoryEntry).filter(Boolean)
+      : [];
 
-    return [
-      {
-        timestamp: '2025-10-21T11:45:00Z',
-        temperature: 27.6,
-        humidity: 82,
-        soil_moisture: 44,
-        motion_detected: false,
-      },
-      {
-        timestamp: '2025-10-21T10:40:00Z',
-        temperature: 27.2,
-        humidity: 80,
-        soil_moisture: 46,
-        motion_detected: false,
-      },
-      {
-        timestamp: '2025-10-21T09:30:00Z',
-        temperature: 26.4,
-        humidity: 77,
-        soil_moisture: 48,
-        motion_detected: true,
-      },
-      {
-        timestamp: '2025-10-21T08:15:00Z',
-        temperature: 25.9,
-        humidity: 74,
-        soil_moisture: 52,
-        motion_detected: false,
-      },
-    ];
+    const fallbackHistory = generateMockHistory();
+    const merged = [...fallbackHistory];
+
+    normalizedHistory.forEach((entry) => {
+      merged.push(entry);
+    });
+
+    const uniqueMap = new Map();
+    merged.forEach((entry) => {
+      uniqueMap.set(entry.timestamp, entry);
+    });
+
+    return Array.from(uniqueMap.values()).sort(
+      (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+    );
   }, [device]);
 
   const formatNumber = (val, digits = 1) => {
     if (typeof val !== 'number' || Number.isNaN(val)) return '--';
     return val.toFixed(digits);
   };
-
-  const formatMetricValue = (val, digits, unit) => {
-    if (typeof val !== 'number' || Number.isNaN(val)) return '--';
-    return `${formatNumber(val, digits)}${unit}`;
-  };
-
-  const chartMetrics = useMemo(() => {
-    const configs = [
-      {
-        key: 'temperature',
-        label: 'Temperature',
-        unit: '°C',
-        color: '#F97316',
-        digits: 1,
-        getValue: (entry) => entry.temperature,
-      },
-      {
-        key: 'humidity',
-        label: 'Humidity',
-        unit: '%',
-        color: '#0EA5E9',
-        digits: 0,
-        getValue: (entry) => entry.humidity,
-      },
-      {
-        key: 'soil',
-        label: 'Soil Moisture',
-        unit: '%',
-        color: '#22C55E',
-        digits: 0,
-        getValue: (entry) => entry.soil_moisture,
-      },
-    ];
-
-    return configs.map((config) => {
-      const points = historySeries.reduce((acc, entry, index) => {
-        const raw = config.getValue(entry);
-        if (typeof raw === 'number' && !Number.isNaN(raw)) {
-          acc.push({
-            key: `${config.key}-${index}`,
-            raw,
-            timestamp: entry.timestamp,
-            label: formatTime(entry.timestamp),
-          });
-        }
-        return acc;
-      }, []);
-
-      const values = points.map((point) => point.raw);
-      const min = values.length > 0 ? Math.min(...values) : null;
-      const max = values.length > 0 ? Math.max(...values) : null;
-      const range = min !== null && max !== null ? max - min : null;
-
-      const normalizedPoints = points.map((point) => {
-        if (range === null || range === 0) {
-          return {
-            ...point,
-            normalized: 0.5,
-          };
-        }
-
-        return {
-          ...point,
-          normalized: (point.raw - min) / range,
-        };
-      });
-
-      const delta =
-        points.length > 1 ? points[points.length - 1].raw - points[0].raw : null;
-
-      return {
-        ...config,
-        min,
-        max,
-        points: normalizedPoints,
-        latest: points.length > 0 ? points[points.length - 1].raw : null,
-        delta,
-      };
-    });
-  }, [historySeries]);
-
-  const motionTimeline = useMemo(
-    () =>
-      historySeries.map((entry, index) => ({
-        key: `motion-${index}`,
-        timestamp: entry.timestamp,
-        detected: Boolean(entry.motion_detected),
-      })),
-    [historySeries]
-  );
 
   const sensorCards = [
     {
@@ -283,211 +251,18 @@ export default function AdminIotDetailScreen({ route }) {
           <TouchableOpacity
             style={styles.historyButton}
             activeOpacity={0.85}
-            onPress={() => setHistoryVisible(true)}
+            onPress={() =>
+              navigation.navigate(ADMIN_IOT_ANALYTICS, {
+                device,
+                history: historySeries,
+              })
+            }
           >
-            <Text style={styles.historyButtonText}>View Previous Data</Text>
+            <Text style={styles.historyButtonText}>Open Analytics Dashboard</Text>
           </TouchableOpacity>
 
         <Text style={styles.updatedText}>Last updated {formatDate(device.last_updated)}</Text>
       </ScrollView>
-
-        <Modal
-          visible={historyVisible}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setHistoryVisible(false)}
-        >
-          <View style={styles.modalBackdrop}>
-            <View style={styles.modalCard}>
-              <View style={styles.modalHeader}>
-                <View>
-                  <Text style={styles.modalTitle}>Historical Sensor Data</Text>
-                  <Text style={styles.modalSubtitle}>
-                    Quick snapshot of recent trends. Hook up to real analytics when ready.
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  accessibilityLabel="Close historical data view"
-                  onPress={() => setHistoryVisible(false)}
-                >
-                  <Ionicons name="close" size={22} color="#0F172A" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView contentContainerStyle={styles.chartList}>
-                {chartMetrics.map((metric) => {
-                  const latestLabel =
-                    metric.latest !== null
-                      ? formatMetricValue(metric.latest, metric.digits, metric.unit)
-                      : 'No data yet';
-                  const peakLabel = formatMetricValue(metric.max, metric.digits, metric.unit);
-                  const lowLabel = formatMetricValue(metric.min, metric.digits, metric.unit);
-                  const delta = metric.delta;
-                  const deltaColor =
-                    delta === null || delta === 0 ? '#475467' : delta > 0 ? '#16A34A' : '#DC2626';
-                  const deltaIcon =
-                    delta === null || delta === 0
-                      ? 'remove-outline'
-                      : delta > 0
-                      ? 'arrow-up'
-                      : 'arrow-down';
-                  const deltaLabel =
-                    delta === null || delta === 0
-                      ? 'Stable'
-                      : `${delta > 0 ? '+' : ''}${formatNumber(delta, metric.digits)}${metric.unit}`;
-
-                  const firstLabel = metric.points[0]?.label ?? '--';
-                  const lastLabel = metric.points.length > 0 ? metric.points[metric.points.length - 1].label : '--';
-                  const middleLabel =
-                    metric.points.length > 2
-                      ? metric.points[Math.floor(metric.points.length / 2)].label
-                      : null;
-
-                  const chartWidth = 220;
-                  const chartHeight = 92;
-                  const verticalPadding = 12;
-                  const sparkPoints = metric.points.map((point, index) => {
-                    const x =
-                      metric.points.length > 1
-                        ? (index / (metric.points.length - 1)) * chartWidth
-                        : chartWidth / 2;
-                    const y =
-                      chartHeight -
-                      (point.normalized * (chartHeight - verticalPadding * 2) + verticalPadding);
-                    return { ...point, x, y };
-                  });
-
-                  const polylinePoints = sparkPoints.map((point) => `${point.x},${point.y}`).join(' ');
-                  const areaPath =
-                    sparkPoints.length > 0
-                      ? `M 0 ${chartHeight} ${sparkPoints
-                          .map((point) => `L ${point.x} ${point.y}`)
-                          .join(' ')} L ${chartWidth} ${chartHeight} Z`
-                      : `M 0 ${chartHeight} L ${chartWidth} ${chartHeight} Z`;
-                  const gradientId = `trend-gradient-${metric.key}`;
-
-                  return (
-                    <View key={metric.key} style={styles.chartCard}>
-                      <View style={styles.chartHeader}>
-                        <View style={[styles.chartLegendDot, { backgroundColor: metric.color }]} />
-                        <View style={styles.chartHeaderText}>
-                          <Text style={styles.chartTitle}>{metric.label}</Text>
-                          <Text style={styles.chartSubtitle}>Latest {latestLabel}</Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.chartMetaRow}>
-                        <View style={styles.chartMetaColumn}>
-                          <Text style={styles.chartMetaLabel}>Peak</Text>
-                          <Text style={styles.chartMetaValue}>{peakLabel}</Text>
-                        </View>
-                        <View style={styles.chartMetaDivider} />
-                        <View style={styles.chartMetaColumn}>
-                          <Text style={styles.chartMetaLabel}>Low</Text>
-                          <Text style={styles.chartMetaValue}>{lowLabel}</Text>
-                        </View>
-                        <View style={styles.chartMetaDivider} />
-                        <View style={styles.chartMetaColumn}>
-                          <Text style={styles.chartMetaLabel}>Change</Text>
-                          <View style={styles.chartDeltaRow}>
-                            <Ionicons name={deltaIcon} size={14} color={deltaColor} />
-                            <Text style={[styles.chartDeltaValue, { color: deltaColor }]}>
-                              {deltaLabel}
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-
-                      {sparkPoints.length > 0 ? (
-                        <>
-                          <View style={styles.sparklineContainer}>
-                            <Svg
-                              width="100%"
-                              height={chartHeight}
-                              viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-                              style={styles.sparklineSvg}
-                            >
-                              <Defs>
-                                <LinearGradient
-                                  id={gradientId}
-                                  x1="0"
-                                  y1="0"
-                                  x2="0"
-                                  y2="1"
-                                >
-                                  <Stop offset="0%" stopColor={`${metric.color}33`} />
-                                  <Stop offset="100%" stopColor={`${metric.color}00`} />
-                                </LinearGradient>
-                              </Defs>
-                              <Path d={areaPath} fill={`url(#${gradientId})`} />
-                              <Polyline
-                                points={polylinePoints}
-                                fill="none"
-                                stroke={metric.color}
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              {sparkPoints.map((point) => (
-                                <Circle
-                                  key={`${point.key}-dot`}
-                                  cx={point.x}
-                                  cy={point.y}
-                                  r={3.2}
-                                  fill="#FFFFFF"
-                                  stroke={metric.color}
-                                  strokeWidth={2}
-                                />
-                              ))}
-                            </Svg>
-                          </View>
-                          <View style={styles.chartXAxis}>
-                            <Text style={styles.chartXAxisLabel}>{firstLabel}</Text>
-                            {middleLabel && <Text style={styles.chartXAxisLabel}>{middleLabel}</Text>}
-                            <Text style={styles.chartXAxisLabel}>{lastLabel}</Text>
-                          </View>
-                        </>
-                      ) : (
-                        <Text style={styles.chartEmpty}>Not enough readings to chart yet.</Text>
-                      )}
-                    </View>
-                  );
-                })}
-
-                {motionTimeline.length > 0 && (
-                  <View style={styles.motionSection}>
-                    <Text style={styles.motionTitle}>Motion detections</Text>
-                    <View style={styles.motionChips}>
-                      {motionTimeline.map((slot) => (
-                        <View
-                          key={slot.key}
-                          style={[
-                            styles.motionChip,
-                            slot.detected ? styles.motionChipActive : styles.motionChipMuted,
-                          ]}
-                        >
-                          <Ionicons
-                            name={slot.detected ? 'walk' : 'walk-outline'}
-                            size={14}
-                            color={slot.detected ? '#1E3A8A' : '#94A3B8'}
-                          />
-                          <Text style={styles.motionChipText}>{formatTime(slot.timestamp)}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                )}
-              </ScrollView>
-
-                <View style={styles.modalFooter}>
-                  <Ionicons name="analytics-outline" size={16} color="#2563EB" />
-                  <Text style={styles.modalFooterText}>
-                    Tip: connect this trend view to live telemetry data once the backend endpoints are ready.
-                  </Text>
-                </View>
-            </View>
-          </View>
-        </Modal>
     </SafeAreaView>
   );
 }
@@ -510,6 +285,7 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'flex-start',
+      marginBottom: 12,
     },
     backButton: {
       flexDirection: 'row',
@@ -645,7 +421,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
     historyButton: {
-      marginTop: 4,
+      marginTop: 12,
       alignSelf: 'stretch',
       alignItems: 'center',
       justifyContent: 'center',
@@ -664,201 +440,5 @@ const styles = StyleSheet.create({
       color: '#FFFFFF',
       letterSpacing: 0.2,
       textTransform: 'uppercase',
-    },
-    modalBackdrop: {
-      flex: 1,
-      backgroundColor: 'rgba(15, 23, 42, 0.45)',
-      padding: 20,
-      justifyContent: 'flex-end',
-    },
-    modalCard: {
-      borderTopLeftRadius: 22,
-      borderTopRightRadius: 22,
-      paddingHorizontal: 20,
-      paddingTop: 20,
-      paddingBottom: 28,
-      backgroundColor: '#FFFFFF',
-      gap: 18,
-    },
-    modalHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      gap: 16,
-    },
-    modalTitle: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: '#0F172A',
-    },
-    modalSubtitle: {
-      marginTop: 4,
-      fontSize: 12,
-      color: '#64748B',
-      lineHeight: 18,
-    },
-    chartList: {
-      paddingBottom: 12,
-      gap: 16,
-    },
-    chartCard: {
-      borderRadius: 18,
-      borderWidth: 1,
-      borderColor: '#E2E8F0',
-      backgroundColor: '#F8FBFF',
-      padding: 16,
-      gap: 12,
-      shadowColor: '#000',
-      shadowOpacity: 0.03,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 2,
-    },
-    chartHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    chartLegendDot: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-    },
-    chartHeaderText: {
-      flex: 1,
-      gap: 2,
-    },
-    chartTitle: {
-      fontSize: 15,
-      fontWeight: '700',
-      color: '#0F172A',
-    },
-    chartSubtitle: {
-      fontSize: 12,
-      color: '#475467',
-    },
-    chartMetaRow: {
-      marginTop: 12,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      borderRadius: 12,
-      backgroundColor: '#F1F5F9',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    chartMetaColumn: {
-      flex: 1,
-      gap: 4,
-    },
-    chartMetaLabel: {
-      fontSize: 11,
-      color: '#64748B',
-      textTransform: 'uppercase',
-      letterSpacing: 0.6,
-    },
-    chartMetaValue: {
-      fontSize: 13,
-      fontWeight: '600',
-      color: '#0F172A',
-    },
-    chartMetaDivider: {
-      width: StyleSheet.hairlineWidth,
-      alignSelf: 'stretch',
-      backgroundColor: '#E2E8F0',
-    },
-    chartDeltaRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-    },
-    chartDeltaValue: {
-      fontSize: 13,
-      fontWeight: '600',
-    },
-    sparklineContainer: {
-      marginTop: 16,
-      borderRadius: 14,
-      backgroundColor: '#FFFFFF',
-      borderWidth: 1,
-      borderColor: '#E2E8F0',
-      padding: 12,
-      width: '100%',
-    },
-    sparklineSvg: {
-      width: '100%',
-    },
-    chartXAxis: {
-      marginTop: 8,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingHorizontal: 6,
-    },
-    chartXAxisLabel: {
-      fontSize: 11,
-      color: '#64748B',
-    },
-    chartEmpty: {
-      paddingVertical: 36,
-      textAlign: 'center',
-      fontSize: 12,
-      color: '#64748B',
-    },
-    motionSection: {
-      marginTop: 8,
-      borderRadius: 18,
-      borderWidth: 1,
-      borderColor: '#E2E8F0',
-      backgroundColor: '#FFFFFF',
-      padding: 16,
-      gap: 12,
-    },
-    motionTitle: {
-      fontSize: 12,
-      fontWeight: '700',
-      color: '#0F172A',
-      textTransform: 'uppercase',
-      letterSpacing: 0.6,
-    },
-    motionChips: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
-    },
-    motionChip: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 999,
-      borderWidth: 1,
-    },
-    motionChipActive: {
-      backgroundColor: '#EEF2FF',
-      borderColor: '#C7D2FE',
-    },
-    motionChipMuted: {
-      backgroundColor: '#F1F5F9',
-      borderColor: '#E2E8F0',
-    },
-    motionChipText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: '#334155',
-    },
-    modalFooter: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 10,
-      padding: 14,
-      borderRadius: 16,
-      backgroundColor: '#EEF2FF',
-    },
-    modalFooterText: {
-      flex: 1,
-      fontSize: 12,
-      color: '#1E3A8A',
-      lineHeight: 18,
     },
 });
