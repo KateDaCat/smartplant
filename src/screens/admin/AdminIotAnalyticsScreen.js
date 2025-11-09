@@ -277,10 +277,10 @@ const MetricChart = ({ data, metric, rangeKey, chartWidth }) => {
               key={`${metric.key}-dot-${index}`}
               cx={point.x}
               cy={point.y}
-              r={3.2}
+              r={rangeKey === '7D' ? 0 : 3.2}
               fill="#FFFFFF"
               stroke={color}
-              strokeWidth={2}
+              strokeWidth={rangeKey === '7D' ? 0 : 2}
             />
           ))}
         </Svg>
