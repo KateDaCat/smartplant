@@ -222,9 +222,8 @@ const styles = StyleSheet.create({
   },
   tabItem: {
     height: BAR_HEIGHT,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 8,
   },
   scanTabButton: {
     flex: 1,
