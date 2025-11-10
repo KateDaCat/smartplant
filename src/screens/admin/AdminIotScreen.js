@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { ADMIN_IOT_DETAIL } from '../../navigation/routes';
 
@@ -63,14 +64,37 @@ const MOCK_IOT_DEVICES = [
 
 export default function AdminIotScreen() {
   const navigation = useNavigation();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredDevices = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+
+    return MOCK_IOT_DEVICES.slice()
+      .filter((device) => {
+        if (!normalizedQuery) return true;
+        const haystack = [
+          device.device_name,
+          device.device_id,
+          device.species,
+          device.location?.name,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        return haystack.includes(normalizedQuery);
+      })
+      .sort((a, b) => a.device_name.localeCompare(b.device_name));
+  }, [searchQuery]);
+
   const alertDevices = useMemo(
-    () => MOCK_IOT_DEVICES.filter((device) => device.alerts && device.alerts.length > 0),
-    []
-  );
+      () => filteredDevices.filter((device) => device.alerts && device.alerts.length > 0),
+      [filteredDevices]
+    );
   const normalDevices = useMemo(
-    () => MOCK_IOT_DEVICES.filter((device) => !device.alerts || device.alerts.length === 0),
-    []
-  );
+      () => filteredDevices.filter((device) => !device.alerts || device.alerts.length === 0),
+      [filteredDevices]
+    );
+  const noMatches = filteredDevices.length === 0;
 
   const renderDeviceRow = (item, isAlert = false) => (
     <View style={[styles.row, isAlert && styles.alertRow]}
@@ -98,40 +122,70 @@ export default function AdminIotScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.headerTitle}>IoT Monitoring</Text>
-      <Text style={styles.headerSubtitle}>
-        Overview of active sensors in the field. Tap `View` to drill into analytics.
-      </Text>
-
-      {alertDevices.length > 0 && (
-        <View style={[styles.table, styles.alertTable]}>
-          <View style={[styles.row, styles.headerRow, styles.alertHeaderRow]}>
-            <Text style={[styles.cellWide, styles.headerText, styles.alertHeaderText]}>Plant</Text>
-            <Text style={[styles.cell, styles.headerText, styles.alertHeaderText]}>Device ID</Text>
-            <Text style={[styles.cellAction, styles.headerText, styles.alertHeaderText]}>Action</Text>
-          </View>
-          {alertDevices.map((item) => renderDeviceRow(item, true))}
-        </View>
-      )}
-
-      <View style={styles.table}>
-        <View style={[styles.row, styles.headerRow]}>
-          <Text style={[styles.cellWide, styles.headerText]}>Plant</Text>
-          <Text style={[styles.cell, styles.headerText]}>Device ID</Text>
-          <Text style={[styles.cellAction, styles.headerText]}>Action</Text>
-        </View>
-
-        <FlatList
-          data={normalDevices}
-          keyExtractor={(item) => item.device_id}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          renderItem={({ item }) => renderDeviceRow(item)}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>All monitored plants are currently in alert state.</Text>
-            </View>
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={16} color="#64748B" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by device, plant, or location"
+            placeholderTextColor="#94A3B8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}
+              style={styles.clearButton}
+              accessibilityLabel="Clear search"
+            >
+              <Ionicons name="close-circle" size={18} color="#94A3B8" />
+            </TouchableOpacity>
           )}
-        />
-      </View>
+        </View>
+
+        {noMatches ? (
+          <View style={[styles.table, styles.emptyCard]}>
+            <Ionicons name="hardware-chip-outline" size={24} color="#94A3B8" />
+            <Text style={styles.emptyCardTitle}>No devices found</Text>
+            <Text style={styles.emptyCardSubtitle}>Try a different search term or clear the filter.</Text>
+          </View>
+        ) : (
+          <>
+            {alertDevices.length > 0 && (
+              <View style={[styles.table, styles.alertTable]}>
+                <View style={[styles.row, styles.headerRow, styles.alertHeaderRow]}>
+                  <Text style={[styles.cellWide, styles.headerText, styles.alertHeaderText]}>Plant</Text>
+                  <Text style={[styles.cell, styles.headerText, styles.alertHeaderText]}>Device ID</Text>
+                  <Text style={[styles.cellAction, styles.headerText, styles.alertHeaderText]}>Action</Text>
+                </View>
+                {alertDevices.map((item) => renderDeviceRow(item, true))}
+              </View>
+            )}
+
+            <View style={styles.table}>
+              <View style={[styles.row, styles.headerRow]}>
+                <Text style={[styles.cellWide, styles.headerText]}>Plant</Text>
+                <Text style={[styles.cell, styles.headerText]}>Device ID</Text>
+                <Text style={[styles.cellAction, styles.headerText]}>Action</Text>
+              </View>
+
+              <FlatList
+                data={normalDevices}
+                keyExtractor={(item) => item.device_id}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+                renderItem={({ item }) => renderDeviceRow(item)}
+                ListEmptyComponent={() => (
+                  <View style={styles.emptyState}>
+                    <Text style={styles.emptyStateText}>
+                      {alertDevices.length > 0
+                        ? 'All matching devices are currently in alert state.'
+                        : 'No non-alert devices match your search.'}
+                    </Text>
+                  </View>
+                )}
+              />
+            </View>
+          </>
+        )}
     </SafeAreaView>
   );
 }
@@ -146,12 +200,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#1F2A37',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#4B5563',
-    marginTop: 4,
-    marginBottom: 16,
   },
   table: {
     backgroundColor: '#FFFFFF',
@@ -252,4 +300,41 @@ const styles = StyleSheet.create({
     color: '#475467',
     textAlign: 'center',
   },
+    searchBar: {
+      marginTop: 16,
+      marginBottom: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 14,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: '#E2E8F0',
+      gap: 8,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 13.5,
+      color: '#0F172A',
+    },
+    clearButton: {
+      padding: 4,
+    },
+    emptyCard: {
+      paddingVertical: 32,
+      paddingHorizontal: 20,
+      alignItems: 'center',
+      gap: 10,
+    },
+    emptyCardTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#1F2937',
+    },
+    emptyCardSubtitle: {
+      fontSize: 13,
+      color: '#6B7280',
+      textAlign: 'center',
+    },
 });

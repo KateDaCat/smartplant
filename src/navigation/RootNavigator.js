@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ROOT_TABS, TAB_HOME, TAB_IDENTIFY, ADMIN_ROOT, ADMIN_ENDANGERED, ADMIN_USER_DETAIL, ADMIN_IOT, ADMIN_IOT_DETAIL, ADMIN_FLAG_REVIEW, ADMIN_AGENT_CHAT } from './routes';
+import { ROOT_TABS, TAB_HOME, TAB_IDENTIFY, ADMIN_ROOT, ADMIN_ENDANGERED, ADMIN_USER_DETAIL, ADMIN_IOT, ADMIN_IOT_DETAIL, ADMIN_IOT_ANALYTICS, ADMIN_FLAG_REVIEW, ADMIN_AGENT_CHAT } from './routes';
 
 // screens
 import HomeScreen from '../screens/HomeScreen';
@@ -16,6 +16,7 @@ import AdminEndangeredListScreen from '../screens/admin/AdminEndangeredListScree
 import AdminUserDetailScreen from '../screens/admin/AdminUserDetailScreen';
 import AdminIotScreen from '../screens/admin/AdminIotScreen';
 import AdminIotDetailScreen from '../screens/admin/AdminIotDetailScreen';
+import AdminIotAnalyticsScreen from '../screens/admin/AdminIotAnalyticsScreen';
 import AdminFlagReviewScreen from '../screens/admin/AdminFlagReviewScreen';
 import CameraScreen from '../screens/CameraScreen';
 import PreviewScreen from '../screens/PreviewScreen';
@@ -33,11 +34,8 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 /** --- Layout constants (tweak freely, no logic impact) --- */
-const BAR_HEIGHT = 68;
-const FAB_SIZE = 84;
-const FAB_BORDER = 6;
-const FAB_RADIUS = FAB_SIZE / 2;
-const FAB_LIFT = FAB_RADIUS + 12;
+const BAR_HEIGHT = 96;
+const SCAN_SIZE = 72;
 
 function Tabs() {
   return (
@@ -49,7 +47,7 @@ function Tabs() {
         tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: '#6DAF7A',
         tabBarInactiveTintColor: '#9AA3A7',
-        tabBarStyle: styles.floatingBar,
+        tabBarStyle: styles.tabBar,
         tabBarItemStyle: styles.tabItem,
       }}
     >
@@ -82,14 +80,14 @@ function Tabs() {
           tabBarButton: (props) => (
             <TouchableOpacity
               {...props}
-              activeOpacity={0.9}
-              style={[styles.fabHitbox, { top: -FAB_LIFT }]}
+              activeOpacity={0.85}
+              style={styles.scanTabButton}
               accessibilityRole="button"
               accessibilityLabel="Identify"
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <View style={styles.fab}>
-                <Ionicons name="scan" size={28} color="#fff" />
+              <View style={styles.scanCircle}>
+                <Ionicons name="scan" size={30} color="#fff" />
               </View>
             </TouchableOpacity>
           ),
@@ -146,22 +144,29 @@ export default function RootNavigator() {
             headerTitle: 'Endangered Species',
           }}
         />
-        <Stack.Screen
-          name={ADMIN_IOT}
-          component={AdminIotScreen}
-          options={{
-            headerShown: true,
-            headerTitle: 'IoT Monitoring',
-          }}
-        />
-        <Stack.Screen
-          name={ADMIN_IOT_DETAIL}
-          component={AdminIotDetailScreen}
-          options={{
-            headerShown: true,
-            headerTitle: 'Device Details',
-          }}
-        />
+      <Stack.Screen
+        name={ADMIN_IOT}
+        component={AdminIotScreen}
+        options={{
+          headerShown: true,
+          headerTitle: 'IoT Monitoring',
+        }}
+      />
+      <Stack.Screen
+        name={ADMIN_IOT_DETAIL}
+        component={AdminIotDetailScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name={ADMIN_IOT_ANALYTICS}
+        component={AdminIotAnalyticsScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
         <Stack.Screen
           name={ADMIN_FLAG_REVIEW}
           component={AdminFlagReviewScreen}
@@ -207,55 +212,32 @@ export default function RootNavigator() {
 }
 
 const styles = StyleSheet.create({
-  floatingBar: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    bottom: 15,
+  tabBar: {
     height: BAR_HEIGHT,
-    borderRadius: 22,
-    backgroundColor: '#fff',
-    borderTopWidth: 0,
-    paddingTop: Platform.OS === 'ios' ? 10 : 6,
-    paddingBottom: Platform.OS === 'ios' ? 14 : 10,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOpacity: 0.10,
-        shadowRadius: 14,
-        shadowOffset: { width: 0, height: 8 },
-      },
-      android: { elevation: 12 },
-    }),
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingBottom: Platform.OS === 'ios' ? 30 : 22,
+    paddingTop: Platform.OS === 'ios' ? 10 : 8,
   },
   tabItem: {
     height: BAR_HEIGHT,
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    paddingBottom: 8,
   },
-  fabHitbox: {
-    position: 'absolute',
-    alignSelf: 'center',
-    justifyContent: 'center',
+  scanTabButton: {
+    flex: 1,
+    justifyContent: 'flex-start',
     alignItems: 'center',
+    paddingTop: 10,
   },
-  fab: {
-    width: FAB_SIZE,
-    height: FAB_SIZE,
-    borderRadius: FAB_RADIUS,
+  scanCircle: {
+    width: SCAN_SIZE,
+    height: SCAN_SIZE,
+    borderRadius: SCAN_SIZE / 2,
     backgroundColor: '#6DAF7A',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: FAB_BORDER,
-    borderColor: '#fff',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOpacity: 0.20,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 8 },
-      },
-      android: { elevation: 14 },
-    }),
   },
 });
