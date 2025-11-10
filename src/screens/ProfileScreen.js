@@ -151,7 +151,7 @@ const s = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: '#E5ECF3',
   },
-  name: { fontSize: 26, fontWeight: 'bold', color: '#244332' },
+  name: { fontSize: 20, fontWeight: 'bold', color: '#244332' },
   uid: { color: '#2E6A4C', marginTop: 2, opacity: 0.9 },
 
   statsContainer: {

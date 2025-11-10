@@ -219,9 +219,9 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#EEE',
   },
-  backBtn: { paddingHorizontal: 8, paddingVertical: 6 },
-  backTxt: { color: '#2b2b2b', fontWeight: '700' },
-  headerTitle: { fontWeight: '800', color: '#2b2b2b' },
+    backBtn: { paddingHorizontal: 8, paddingVertical: 6 },
+    backTxt: { color: '#2b2b2b', fontWeight: '700' },
+    headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#2b2b2b' },
 
   imgWrapper: { position: 'relative' },
   img: {
