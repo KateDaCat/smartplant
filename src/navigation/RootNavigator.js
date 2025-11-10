@@ -213,12 +213,22 @@ export default function RootNavigator() {
 
 const styles = StyleSheet.create({
   tabBar: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: 10,
     height: BAR_HEIGHT,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
+    borderRadius: 22,
     paddingBottom: Platform.OS === 'ios' ? 28 : 20,
     paddingTop: Platform.OS === 'ios' ? 8 : 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
   tabItem: {
     height: BAR_HEIGHT,
