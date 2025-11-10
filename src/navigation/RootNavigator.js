@@ -35,7 +35,8 @@ const Stack = createNativeStackNavigator();
 
 /** --- Layout constants (tweak freely, no logic impact) --- */
 const BAR_HEIGHT = 84;
-const SCAN_SIZE = 64;
+const SCAN_SIZE = 68;
+const SCAN_OFFSET = 20;
 
 function Tabs() {
   return (
@@ -86,7 +87,7 @@ function Tabs() {
               accessibilityLabel="Identify"
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <View style={styles.scanCircle}>
+    <View style={[styles.scanCircle, { marginBottom: SCAN_OFFSET }]}>
                 <Ionicons name="scan" size={28} color="#fff" />
               </View>
             </TouchableOpacity>
@@ -237,5 +238,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#6DAF7A',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
   },
 });
