@@ -85,58 +85,86 @@ export default function SearchScreen() {
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
         );
     }
-  }, [query, endangeredOnly, sourceFilter, minConfidence, sort]);
+    }, [query, endangeredOnly, sourceFilter, minConfidence, sort]);
 
-  const resultWord = results.length === 1 ? 'result' : 'results';
-  const hasActiveSort = sort !== 'newest';
-  const hasSearch = Boolean(query.trim());
-  const hasFilter =
-    endangeredOnly || sourceFilter !== 'all' || minConfidence > 0;
-  const showForYou = !hasActiveSort && !hasSearch && !hasFilter;
+    const resultWord = results.length === 1 ? 'result' : 'results';
+    const hasActiveSort = sort !== 'newest';
+    const hasSearch = Boolean(query.trim());
+    const hasFilter =
+      endangeredOnly || sourceFilter !== 'all' || minConfidence > 0;
+    const showForYou = !hasActiveSort && !hasSearch && !hasFilter;
 
-  const renderItem = ({item}) => {
-    const imgSource =
-      typeof item.photoUri === 'string' ? {uri: item.photoUri} : item.photoUri;
+    const renderItem = ({item}) => {
+      const imgSource =
+        typeof item.photoUri === 'string' ? {uri: item.photoUri} : item.photoUri;
 
-    return (
-      <Pressable
-        onPress={() =>
-          nav.navigate('ObservationDetail', {
-            id: item.id,
-            speciesName: item.speciesName,
-            scientificName: item.scientificName,
-            commonName: item.commonName,
-            isEndangered: item.isEndangered,
-            photoUri: item.photoUri,
-            createdAt: item.createdAt,
-            confidence: item.confidence,
-            region: item.region,
-            locationName: item.locationName,
-            latitude: item.latitude,
-            longitude: item.longitude,
-            notes: item.notes,
-            uploadedBy: item.uploadedBy,
-            source: item.source,
-          })
-        }
-        style={s.card}
-        android_ripple={{color: '#00000014'}}
-      >
-        <Image source={imgSource} style={s.cardImage} />
-        <View style={s.cardBody}>
-          <Text numberOfLines={1} style={s.cardTitle}>
-            {item.speciesName || item.commonName || 'Unknown species'}
-          </Text>
-          <Text style={s.cardSub}>
-            {item.isEndangered
-              ? 'Location hidden to protect species'
-              : `Location: ${item.locationName || 'Unknown'}`}
-          </Text>
-          <Text style={s.cardMeta}>{formatDate(item.createdAt)}</Text>
+      const openObservation = () =>
+        nav.navigate('ObservationDetail', {
+          id: item.id,
+          speciesName: item.speciesName,
+          scientificName: item.scientificName,
+          commonName: item.commonName,
+          isEndangered: item.isEndangered,
+          photoUri: item.photoUri,
+          createdAt: item.createdAt,
+          confidence: item.confidence,
+          region: item.region,
+          locationName: item.locationName,
+          latitude: item.latitude,
+          longitude: item.longitude,
+          notes: item.notes,
+          uploadedBy: item.uploadedBy,
+          source: item.source,
+        });
+
+      const displayUserId =
+        item.userId ?? item.uploaderId ?? item.userUid ?? 'Unknown';
+
+      return (
+        <View style={s.post}>
+          <View style={s.postHeader}>
+            <View style={s.userInfo}>
+              <View style={s.userBadge}>
+                <Text style={s.userBadgeText}>
+                  {(item.uploadedBy || '?').slice(0, 2).toUpperCase()}
+                </Text>
+              </View>
+              <View>
+                <Text style={s.username}>{item.uploadedBy || 'Unknown user'}</Text>
+                <Text style={s.userId}>User ID: {displayUserId}</Text>
+              </View>
+            </View>
+            <Pressable
+              style={s.viewButton}
+              onPress={openObservation}
+              android_ripple={{color: '#00000010', borderless: false}}
+            >
+              <Text style={s.viewButtonText}>View</Text>
+            </Pressable>
+          </View>
+
+          <Pressable
+            onPress={openObservation}
+            style={s.imageWrap}
+            android_ripple={{color: '#00000018'}}
+          >
+            <Image source={imgSource} style={s.postImage} resizeMode="cover" />
+          </Pressable>
+
+          <View style={s.postBody}>
+            <Text style={s.postTitle}>
+              {item.speciesName || item.commonName || 'Unknown species'}
+            </Text>
+            <Text style={s.postMeta}>
+              {item.isEndangered
+                ? 'Location hidden to protect species'
+                : item.locationName || 'Unknown location'}
+            </Text>
+            <Text style={s.postTimestamp}>{formatDate(item.createdAt)}</Text>
+          </View>
         </View>
-      </Pressable>
-    );
-  };
+      );
+    };
 
   return (
     <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>
@@ -347,30 +375,66 @@ const s = StyleSheet.create({
   },
   pickerButtonText: {color: '#1F2937', fontWeight: '700'},
   pickerButtonChevron: {color: '#2F6C4F', fontSize: 12},
-  card: {
-    flexDirection: 'row',
+  post: {
     marginHorizontal: 16,
-    marginTop: 16,
+    marginBottom: 28,
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 12,
-    gap: 14,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: {width: 0, height: 3},
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E3E8EF',
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: {width: 0, height: 6},
+    elevation: 3,
   },
-  cardImage: {
-    width: 88,
-    height: 88,
-    borderRadius: 14,
-    backgroundColor: '#D1D5DB',
+  postHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 12,
+    backgroundColor: '#FFFFFF',
   },
-  cardBody: {flex: 1, gap: 8},
-  cardTitle: {fontSize: 16, fontWeight: '800', color: '#1F2937'},
-  cardSub: {color: '#334155', fontSize: 13, fontWeight: '600'},
-  cardMeta: {color: '#64748B', fontSize: 12.5},
+  userInfo: {flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1},
+  userBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#D8E9DF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  userBadgeText: {fontSize: 16, fontWeight: '700', color: '#24543B'},
+  username: {fontSize: 15, fontWeight: '700', color: '#1F2A37'},
+  userId: {fontSize: 12, fontWeight: '600', color: '#64748B', marginTop: 2},
+  viewButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: '#2F6C4F',
+  },
+  viewButtonText: {color: '#FFFFFF', fontWeight: '700', fontSize: 13},
+  imageWrap: {
+    overflow: 'hidden',
+    backgroundColor: '#CBD5F5',
+  },
+  postImage: {
+    width: '100%',
+    height: 320,
+  },
+  postBody: {
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 20,
+    gap: 6,
+    backgroundColor: '#FFFFFF',
+  },
+  postTitle: {fontSize: 17, fontWeight: '800', color: '#0F172A'},
+  postMeta: {fontSize: 13.5, fontWeight: '600', color: '#334155'},
+  postTimestamp: {fontSize: 12.5, fontWeight: '600', color: '#64748B'},
   emptyState: {
     marginTop: 32,
     marginHorizontal: 16,
