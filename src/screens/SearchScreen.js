@@ -184,57 +184,59 @@ export default function SearchScreen() {
 
             <View style={s.filterGroup}>
               <Text style={s.filterLabel}>Filters</Text>
-              <View style={s.filterRow}>
-                <FilterChip
-                  label="Endangered only"
-                  active={endangeredOnly}
-                  onPress={() => setEndangeredOnly(v => !v)}
-                />
-              </View>
-              <View style={s.filterRow}>
-                <FilterChip
-                  label="Camera"
-                  active={sourceFilter === 'camera'}
-                  onPress={() =>
-                    setSourceFilter(prev => (prev === 'camera' ? 'all' : 'camera'))
-                  }
-                />
-                <FilterChip
-                  label="Library"
-                  active={sourceFilter === 'library'}
-                  onPress={() =>
-                    setSourceFilter(prev =>
-                      prev === 'library' ? 'all' : 'library',
-                    )
-                  }
-                />
-              </View>
-              <View style={s.filterRow}>
-                {CONFIDENCE_OPTIONS.map(value => (
+              <View style={s.filterCard}>
+                <View style={s.filterRow}>
                   <FilterChip
-                    key={value}
-                    label={value === 0 ? 'Any confidence' : `≥${value}%`}
-                    active={minConfidence === value}
+                    label="Endangered only"
+                    active={endangeredOnly}
+                    onPress={() => setEndangeredOnly(v => !v)}
+                  />
+                </View>
+                <View style={s.filterRow}>
+                  <FilterChip
+                    label="Camera"
+                    active={sourceFilter === 'camera'}
                     onPress={() =>
-                      setMinConfidence(prev => (prev === value ? 0 : value))
+                      setSourceFilter(prev => (prev === 'camera' ? 'all' : 'camera'))
                     }
                   />
-                ))}
+                  <FilterChip
+                    label="Library"
+                    active={sourceFilter === 'library'}
+                    onPress={() =>
+                      setSourceFilter(prev =>
+                        prev === 'library' ? 'all' : 'library',
+                      )
+                    }
+                  />
+                </View>
+                <View style={s.filterRow}>
+                  {CONFIDENCE_OPTIONS.map(value => (
+                    <FilterChip
+                      key={value}
+                      label={value === 0 ? 'Any confidence' : `≥${value}%`}
+                      active={minConfidence === value}
+                      onPress={() =>
+                        setMinConfidence(prev => (prev === value ? 0 : value))
+                      }
+                    />
+                  ))}
+                </View>
               </View>
             </View>
 
             <View style={s.filterGroup}>
               <Text style={s.filterLabel}>Sort by</Text>
-              <View style={s.filterRow}>
-                {SORT_OPTIONS.map(option => (
-                  <FilterChip
-                    key={option.key}
-                    label={option.label}
-                    active={sort === option.key}
-                    onPress={() => setSort(option.key)}
-                  />
-                ))}
-              </View>
+            <View style={s.sortTrack}>
+              {SORT_OPTIONS.map(option => (
+                <SortChip
+                  key={option.key}
+                  label={option.label}
+                  active={sort === option.key}
+                  onPress={() => setSort(option.key)}
+                />
+              ))}
+            </View>
             </View>
 
             <Text style={s.resultCount}>
@@ -272,6 +274,18 @@ const FilterChip = React.memo(({label, active, onPress}) => (
 
 FilterChip.displayName = 'FilterChip';
 
+const SortChip = React.memo(({label, active, onPress}) => (
+  <Pressable
+    onPress={onPress}
+    style={[s.sortChip, active && s.sortChipActive]}
+    android_ripple={{color: '#00000010'}}
+  >
+    <Text style={[s.sortChipText, active && s.sortChipTextActive]}>{label}</Text>
+  </Pressable>
+));
+
+SortChip.displayName = 'SortChip';
+
 const s = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#F7F9F6'},
   listContent: {paddingBottom: 32},
@@ -297,6 +311,19 @@ const s = StyleSheet.create({
     letterSpacing: 0.5,
   },
   filterRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
+  filterCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E1EFE7',
+    gap: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: {width: 0, height: 2},
+    shadowRadius: 8,
+    elevation: 1,
+  },
   chipBase: {
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -320,6 +347,40 @@ const s = StyleSheet.create({
   },
   feedTitle: {fontSize: 20, fontWeight: '800', color: '#1F2A37', marginTop: 4},
   feedSubtitle: {color: '#475569'},
+  sortTrack: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    backgroundColor: '#EBF4EF',
+    borderRadius: 16,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#D3E6DB',
+  },
+  sortChip: {
+    flexGrow: 1,
+    flexBasis: '47%',
+    minWidth: 120,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#C9E0D3',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sortChipActive: {
+    backgroundColor: '#2F6C4F',
+    borderColor: '#2F6C4F',
+    shadowColor: '#1F4634',
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    shadowOffset: {width: 0, height: 3},
+    elevation: 2,
+  },
+  sortChipText: {color: '#2F6C4F', fontWeight: '700'},
+  sortChipTextActive: {color: '#FFFFFF'},
   card: {
     flexDirection: 'row',
     marginHorizontal: 16,
