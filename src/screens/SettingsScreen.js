@@ -155,17 +155,6 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Support</Text>
-            <View style={styles.supportCard}>
-              <Ionicons name="help-circle-outline" size={20} color="#155E75" />
-              <View style={styles.supportTextBlock}>
-                <Text style={styles.supportTitle}>{SUPPORT_CONTACT.name}</Text>
-                <Text style={styles.supportSub}>{SUPPORT_CONTACT.email}</Text>
-              </View>
-            </View>
-          </View>
-
           <TouchableOpacity
             onPress={handleLogout}
             style={styles.logoutButton}
@@ -259,16 +248,16 @@ const styles = StyleSheet.create({
     marginTop: 12,
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 6,
-    backgroundColor: '#EEF5F0',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    justifyContent: 'center',
+    backgroundColor: '#2F6C4F',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
     borderRadius: 999,
   },
   editAvatarText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#0F172A',
+    color: '#FFFFFF',
   },
   field: {
     marginBottom: 18,
@@ -307,28 +296,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
-  },
-  supportCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 16,
-    backgroundColor: '#E0F2FE',
-    gap: 14,
-  },
-  supportTextBlock: {
-    flex: 1,
-  },
-  supportTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  supportSub: {
-    fontSize: 13,
-    color: '#334155',
-    marginTop: 2,
   },
   logoutButton: {
     marginTop: 12,
