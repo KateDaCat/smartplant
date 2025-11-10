@@ -78,23 +78,23 @@ export default function ObservationDetailScreen() {
           <Text style={s.headerTitle}>Observation</Text>
           <View style={{ width: 56 }} />
         </View>
-          {/* Photo */}
-          {imageSource ? (
-            <Pressable
-              onPress={() => setShowImage(true)}
-              android_ripple={{ color: '#00000014' }}
-              style={s.imgWrapper}
-            >
-              <Image source={imageSource} style={s.img} />
-              <View style={s.expandBadge}>
-                <Ionicons name="expand-outline" size={20} color="#FFFFFF" />
-              </View>
-            </Pressable>
-          ) : (
-            <View style={[s.img, s.imgPlaceholder]}>
-              <Text style={{ color: '#888' }}>No photo</Text>
+        {/* Photo */}
+        {imageSource ? (
+          <Pressable
+            onPress={() => setShowImage(true)}
+            android_ripple={{ color: '#00000014' }}
+            style={s.imgWrapper}
+          >
+            <Image source={imageSource} style={s.img} />
+            <View style={s.expandBadge}>
+              <Ionicons name="expand-outline" size={20} color="#FFFFFF" />
             </View>
-          )}
+          </Pressable>
+        ) : (
+          <View style={[s.img, s.imgPlaceholder]}>
+            <Text style={{ color: '#888' }}>No photo</Text>
+          </View>
+        )}
 
         {/* Title & chips */}
         <View style={s.titleWrap}>
@@ -117,12 +117,10 @@ export default function ObservationDetailScreen() {
               </View>
             )}
           </View>
-
-            {/* low confidence banner removed for user view */}
         </View>
 
-        {/* Meta card */}
-        <View style={s.card}>
+        {/* Meta info */}
+        <View style={s.section}>
           <Row label="Captured on" value={fmtDate(createdAt)} />
           {!!uploadedBy && <Row label="Uploaded by" value={uploadedBy} />}
           {!!source && <Row label="Source" value={source} />}
@@ -130,7 +128,9 @@ export default function ObservationDetailScreen() {
           {!!locationName && <Row label="Location" value={locationName} />}
           {(latitude != null && longitude != null) && (
             <View style={[s.row, { alignItems: 'center' }]}>
-              <View style={s.rowLeft}><Text style={s.label}>Coordinates</Text></View>
+              <View style={s.rowLeft}>
+                <Text style={s.label}>Coordinates</Text>
+              </View>
               <View style={s.rowRight}>
                 <Text style={s.value}>{latitude.toFixed(6)}, {longitude.toFixed(6)}</Text>
                 <Pressable style={s.mapsBtn} onPress={openMaps}>
@@ -144,7 +144,7 @@ export default function ObservationDetailScreen() {
 
         {/* Notes */}
         {!!notes && (
-          <View style={s.card}>
+          <View style={s.section}>
             <Text style={s.sectionTitle}>Notes</Text>
             <Text style={s.notes}>{notes}</Text>
           </View>
@@ -240,21 +240,11 @@ const s = StyleSheet.create({
   chipWarn: { backgroundColor: '#FBE9E9' },
   chipTxt: { fontWeight: '700' },
 
-  bannerLow: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: '#FFF6E5',
-    borderRadius: 8,
-  },
-  bannerTxt: { color: '#8A5A00' },
-
-  card: {
-    marginTop: 12,
-    marginHorizontal: 16,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    elevation: 1,
+  section: {
+    marginTop: 16,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    gap: 4,
   },
   sectionTitle: { fontWeight: '800', marginBottom: 6, color: '#2b2b2b' },
 
