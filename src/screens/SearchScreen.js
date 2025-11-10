@@ -7,8 +7,6 @@ import {
   Image,
   Pressable,
   StyleSheet,
-  Modal,
-  TouchableWithoutFeedback,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
@@ -20,9 +18,6 @@ const SORT_OPTIONS = [
   {key: 'newest', label: 'Newest'},
   {key: 'oldest', label: 'Oldest'},
   {key: 'az', label: 'A to Z'},
-  {key: 'quantity_desc', label: 'Quantity: Most'},
-  {key: 'quantity_asc', label: 'Quantity: Least'},
-  {key: 'confidence', label: 'Highest Confidence'},
 ];
 
 function formatDate(iso) {
@@ -76,37 +71,15 @@ export default function SearchScreen() {
       list = list.filter(item => (item.confidence || 0) >= minConfidence);
     }
 
-    const speciesCounts = list.reduce((acc, item) => {
-      const key = item.speciesName || item.commonName || item.id;
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {});
-
     switch (sort) {
       case 'oldest':
         return list.sort(
           (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
         );
-      case 'confidence':
-        return list.sort(
-          (a, b) => (b.confidence || 0) - (a.confidence || 0),
-        );
       case 'az':
         return list.sort((a, b) =>
           (a.speciesName || '').localeCompare(b.speciesName || ''),
         );
-      case 'quantity_desc':
-        return list.sort((a, b) => {
-          const aKey = a.speciesName || a.commonName || a.id;
-          const bKey = b.speciesName || b.commonName || b.id;
-          return (speciesCounts[bKey] || 0) - (speciesCounts[aKey] || 0);
-        });
-      case 'quantity_asc':
-        return list.sort((a, b) => {
-          const aKey = a.speciesName || a.commonName || a.id;
-          const bKey = b.speciesName || b.commonName || b.id;
-          return (speciesCounts[aKey] || 0) - (speciesCounts[bKey] || 0);
-        });
       default:
         return list.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
@@ -226,21 +199,51 @@ export default function SearchScreen() {
               </View>
             </View>
 
-            <View style={s.filterGroup}>
-              <Text style={s.filterLabel}>Sort by</Text>
-              <View style={s.pickerWrap}>
-                <Pressable
-                  style={s.pickerButton}
-                  onPress={() => setSortMenuVisible(true)}
-                  android_ripple={{color: '#00000014'}}
-                >
-                  <Text style={s.pickerButtonText}>
-                    {SORT_OPTIONS.find(o => o.key === sort)?.label ?? 'Select'}
-                  </Text>
-                  <Text style={s.pickerButtonChevron}>▼</Text>
-                </Pressable>
+              <View style={s.filterGroup}>
+                <Text style={s.filterLabel}>Sort by</Text>
+                <View style={s.dropdown}>
+                  <Pressable
+                    style={s.pickerButton}
+                    onPress={() => setSortMenuVisible(v => !v)}
+                    android_ripple={{color: '#00000014'}}
+                  >
+                    <Text style={s.pickerButtonText}>
+                      {SORT_OPTIONS.find(o => o.key === sort)?.label ?? 'Select'}
+                    </Text>
+                    <Text style={s.pickerButtonChevron}>▼</Text>
+                  </Pressable>
+                  {sortMenuVisible ? (
+                    <View style={s.dropdownMenu}>
+                      {SORT_OPTIONS.map(option => {
+                        const active = sort === option.key;
+                        return (
+                          <Pressable
+                            key={option.key}
+                            style={[
+                              s.dropdownItem,
+                              active && s.dropdownItemActive,
+                            ]}
+                            onPress={() => {
+                              setSort(option.key);
+                              setSortMenuVisible(false);
+                            }}
+                            android_ripple={{color: '#00000010'}}
+                          >
+                            <Text
+                              style={[
+                                s.dropdownItemText,
+                                active && s.dropdownItemTextActive,
+                              ]}
+                            >
+                              {option.label}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  ) : null}
+                </View>
               </View>
-            </View>
 
             <Text style={s.resultCount}>
               {results.length} {resultWord}
@@ -260,46 +263,7 @@ export default function SearchScreen() {
           </View>
         }
         keyboardShouldPersistTaps="handled"
-      />
-      <Modal
-        visible={sortMenuVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setSortMenuVisible(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setSortMenuVisible(false)}>
-          <View style={s.sortModalBackdrop}>
-            <TouchableWithoutFeedback>
-              <View style={s.sortModal}>
-                <Text style={s.sortModalTitle}>Sort results by</Text>
-                {SORT_OPTIONS.map(option => {
-                  const active = sort === option.key;
-                  return (
-                    <Pressable
-                      key={option.key}
-                      style={[s.sortModalItem, active && s.sortModalItemActive]}
-                      onPress={() => {
-                        setSort(option.key);
-                        setSortMenuVisible(false);
-                      }}
-                      android_ripple={{color: '#00000010'}}
-                    >
-                      <Text
-                        style={[
-                          s.sortModalItemText,
-                          active && s.sortModalItemTextActive,
-                        ]}
-                      >
-                        {option.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+        />
     </SafeAreaView>
   );
 }
@@ -364,13 +328,7 @@ const s = StyleSheet.create({
   },
   feedTitle: {fontSize: 20, fontWeight: '800', color: '#1F2A37', marginTop: 4},
   feedSubtitle: {color: '#475569'},
-  pickerWrap: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#D3E6DB',
-    overflow: 'hidden',
-  },
+  dropdown: {position: 'relative'},
   pickerButton: {
     height: 46,
     paddingHorizontal: 14,
@@ -415,39 +373,36 @@ const s = StyleSheet.create({
   },
   emptyTitle: {fontSize: 16, fontWeight: '800', color: '#1F2937'},
   emptySubtitle: {fontSize: 13, color: '#6B7280', textAlign: 'center'},
-  sortModalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  sortModal: {
+  dropdownMenu: {
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    gap: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#D3E6DB',
+    paddingVertical: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    shadowOffset: {width: 0, height: 4},
+    elevation: 5,
+    zIndex: 10,
   },
-  sortModalTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#475569',
-    marginBottom: 8,
+  dropdownItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
   },
-  sortModalItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-  },
-  sortModalItemActive: {
+  dropdownItemActive: {
     backgroundColor: '#E4F1EA',
   },
-  sortModalItemText: {
+  dropdownItemText: {
     fontSize: 14,
     color: '#1F2937',
     fontWeight: '600',
   },
-  sortModalItemTextActive: {
+  dropdownItemTextActive: {
     color: '#2F6C4F',
   },
 });
