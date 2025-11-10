@@ -7,13 +7,13 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Linking,
   Modal,
   TouchableWithoutFeedback,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { ROOT_TABS } from '../navigation/routes';
 
 const LOW_CONFIDENCE_THRESHOLD = 60;
 
@@ -53,9 +53,14 @@ export default function ObservationDetailScreen() {
 
   const openMaps = () => {
     if (latitude != null && longitude != null) {
-      // Works for Android & iOS
-      const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-      Linking.openURL(url).catch(() => {});
+      nav.navigate(ROOT_TABS, {
+        screen: 'Heatmap',
+        params: {
+          focusLatitude: latitude,
+          focusLongitude: longitude,
+          focusLocationName: locationName || null,
+        },
+      });
     }
   };
 
