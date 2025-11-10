@@ -34,8 +34,8 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 /** --- Layout constants (tweak freely, no logic impact) --- */
-const BAR_HEIGHT = 68;
-const SCAN_SIZE = 48;
+const BAR_HEIGHT = 72;
+const SCAN_SIZE = 58;
 
 function Tabs() {
   return (
@@ -87,7 +87,7 @@ function Tabs() {
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <View style={styles.scanCircle}>
-                <Ionicons name="scan" size={24} color="#fff" />
+                <Ionicons name="scan" size={28} color="#fff" />
               </View>
             </TouchableOpacity>
           ),
@@ -213,22 +213,12 @@ export default function RootNavigator() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    position: 'absolute',
-    left: 12,
-    right: 12,
-    bottom: 10,
     height: BAR_HEIGHT,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    borderRadius: 22,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 20,
-    paddingTop: Platform.OS === 'ios' ? 8 : 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 18,
+    paddingTop: Platform.OS === 'ios' ? 12 : 10,
   },
   tabItem: {
     height: BAR_HEIGHT,
