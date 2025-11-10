@@ -88,6 +88,11 @@ export default function SearchScreen() {
   }, [query, endangeredOnly, sourceFilter, minConfidence, sort]);
 
   const resultWord = results.length === 1 ? 'result' : 'results';
+  const hasActiveSort = sort !== 'newest';
+  const hasSearch = Boolean(query.trim());
+  const hasFilter =
+    endangeredOnly || sourceFilter !== 'all' || minConfidence > 0;
+  const showForYou = !hasActiveSort && !hasSearch && !hasFilter;
 
   const renderItem = ({item}) => {
     const imgSource =
@@ -245,13 +250,17 @@ export default function SearchScreen() {
                 </View>
               </View>
 
-            <Text style={s.resultCount}>
-              {results.length} {resultWord}
-            </Text>
-            <Text style={s.feedTitle}>For You</Text>
-            <Text style={s.feedSubtitle}>
-              Latest plant captures from fellow explorers.
-            </Text>
+              <Text style={s.resultCount}>
+                {results.length} {resultWord}
+              </Text>
+              <Text style={s.feedTitle}>
+                {showForYou ? 'For You' : 'Results'}
+              </Text>
+              <Text style={s.feedSubtitle}>
+                {showForYou
+                  ? 'Latest plant captures from fellow explorers.'
+                  : 'Matching plants based on your search or filters.'}
+              </Text>
           </View>
         }
         ListEmptyComponent={
@@ -335,6 +344,10 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    backgroundColor: '#F7FCF9',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#A9D6BC',
   },
   pickerButtonText: {color: '#1F2937', fontWeight: '700'},
   pickerButtonChevron: {color: '#2F6C4F', fontSize: 12},
