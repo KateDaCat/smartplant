@@ -17,8 +17,10 @@ const CONFIDENCE_OPTIONS = [0, 60, 80];
 const SORT_OPTIONS = [
   {key: 'newest', label: 'Newest'},
   {key: 'oldest', label: 'Oldest'},
+  {key: 'az', label: 'A to Z'},
+  {key: 'quantity_desc', label: 'Quantity: Most'},
+  {key: 'quantity_asc', label: 'Quantity: Least'},
   {key: 'confidence', label: 'Highest Confidence'},
-  {key: 'az', label: 'A-Z'},
 ];
 
 function formatDate(iso) {
@@ -42,7 +44,6 @@ export default function SearchScreen() {
 
   const [query, setQuery] = useState('');
   const [endangeredOnly, setEndangeredOnly] = useState(false);
-  const [flaggedOnly, setFlaggedOnly] = useState(false);
   const [sourceFilter, setSourceFilter] = useState('all');
   const [minConfidence, setMinConfidence] = useState(0);
   const [sort, setSort] = useState('newest');
@@ -67,11 +68,16 @@ export default function SearchScreen() {
       });
     }
     if (endangeredOnly) list = list.filter(item => item.isEndangered);
-    if (flaggedOnly) list = list.filter(item => item.flagged);
     if (sourceFilter !== 'all') list = list.filter(item => item.source === sourceFilter);
     if (minConfidence > 0) {
       list = list.filter(item => (item.confidence || 0) >= minConfidence);
     }
+
+    const speciesCounts = list.reduce((acc, item) => {
+      const key = item.speciesName || item.commonName || item.id;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
 
     switch (sort) {
       case 'oldest':
@@ -86,12 +92,24 @@ export default function SearchScreen() {
         return list.sort((a, b) =>
           (a.speciesName || '').localeCompare(b.speciesName || ''),
         );
+      case 'quantity_desc':
+        return list.sort((a, b) => {
+          const aKey = a.speciesName || a.commonName || a.id;
+          const bKey = b.speciesName || b.commonName || b.id;
+          return (speciesCounts[bKey] || 0) - (speciesCounts[aKey] || 0);
+        });
+      case 'quantity_asc':
+        return list.sort((a, b) => {
+          const aKey = a.speciesName || a.commonName || a.id;
+          const bKey = b.speciesName || b.commonName || b.id;
+          return (speciesCounts[aKey] || 0) - (speciesCounts[bKey] || 0);
+        });
       default:
         return list.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
         );
     }
-  }, [query, endangeredOnly, flaggedOnly, sourceFilter, minConfidence, sort]);
+  }, [query, endangeredOnly, sourceFilter, minConfidence, sort]);
 
   const resultWord = results.length === 1 ? 'result' : 'results';
 
@@ -171,11 +189,6 @@ export default function SearchScreen() {
                   label="Endangered only"
                   active={endangeredOnly}
                   onPress={() => setEndangeredOnly(v => !v)}
-                />
-                <FilterChip
-                  label="Flagged"
-                  active={flaggedOnly}
-                  onPress={() => setFlaggedOnly(v => !v)}
                 />
               </View>
               <View style={s.filterRow}>
