@@ -34,8 +34,8 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 /** --- Layout constants (tweak freely, no logic impact) --- */
-const BAR_HEIGHT = 72;
-const SCAN_SIZE = 58;
+const BAR_HEIGHT = 84;
+const SCAN_SIZE = 64;
 
 function Tabs() {
   return (
@@ -217,8 +217,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    paddingBottom: Platform.OS === 'ios' ? 24 : 18,
-    paddingTop: Platform.OS === 'ios' ? 12 : 10,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 26,
+    paddingTop: Platform.OS === 'ios' ? 14 : 12,
   },
   tabItem: {
     height: BAR_HEIGHT,
