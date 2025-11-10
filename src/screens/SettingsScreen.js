@@ -29,7 +29,7 @@ export default function SettingsScreen() {
   const navigation = useNavigation();
 
   const [displayName, setDisplayName] = useState(mockUser.username);
-  const [avatarUrl, setAvatarUrl] = useState(mockUser.avatar);
+  const [avatarUri, setAvatarUri] = useState(mockUser.avatar);
   const [pickerVisible, setPickerVisible] = useState(false);
 
   const requestLibraryPermission = async () => {
@@ -59,7 +59,7 @@ export default function SettingsScreen() {
         quality: 1,
       });
       if (!result.canceled && result.assets?.length) {
-        setAvatarUrl(result.assets[0].uri);
+        setAvatarUri(result.assets[0].uri);
       }
       setPickerVisible(false);
     } catch (err) {
@@ -76,7 +76,7 @@ export default function SettingsScreen() {
         quality: 1,
       });
       if (!result.canceled && result.assets?.length) {
-        setAvatarUrl(result.assets[0].uri);
+        setAvatarUri(result.assets[0].uri);
       }
       setPickerVisible(false);
     } catch (err) {
@@ -87,7 +87,6 @@ export default function SettingsScreen() {
 
   const handleSaveProfile = () => {
     const trimmedName = displayName.trim();
-    const trimmedAvatar = avatarUrl.trim();
 
     if (!trimmedName) {
       Alert.alert('Invalid name', 'Please enter a display name.');
@@ -95,9 +94,8 @@ export default function SettingsScreen() {
     }
 
     mockUser.username = trimmedName;
-    if (trimmedAvatar) {
-      mockUser.avatar = trimmedAvatar;
-      setAvatarUrl(trimmedAvatar);
+    if (avatarUri) {
+      mockUser.avatar = avatarUri;
     }
     setDisplayName(trimmedName);
 
@@ -127,7 +125,7 @@ export default function SettingsScreen() {
             <Text style={styles.sectionLabel}>Profile</Text>
             <View style={styles.avatarPreview}>
               <Image
-                source={{ uri: avatarUrl || mockUser.avatar }}
+                source={{ uri: avatarUri || mockUser.avatar }}
                 style={styles.avatarImage}
               />
                 <TouchableOpacity
@@ -148,21 +146,6 @@ export default function SettingsScreen() {
                 placeholderTextColor="#9CA3AF"
                 style={styles.input}
               />
-            </View>
-
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Avatar URL</Text>
-              <TextInput
-                value={avatarUrl}
-                onChangeText={setAvatarUrl}
-                placeholder="https://example.com/image.jpg"
-                placeholderTextColor="#9CA3AF"
-                autoCapitalize="none"
-                style={styles.input}
-              />
-              <Text style={styles.helperText}>
-                Paste a direct image link (PNG/JPG). Leave blank to keep your current avatar.
-              </Text>
             </View>
 
             <TouchableOpacity style={styles.saveButton} onPress={handleSaveProfile}>
