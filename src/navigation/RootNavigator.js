@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ROOT_TABS, TAB_HOME, TAB_IDENTIFY, ADMIN_ROOT, ADMIN_ENDANGERED, ADMIN_USER_DETAIL, ADMIN_IOT, ADMIN_IOT_DETAIL, ADMIN_IOT_ANALYTICS, ADMIN_FLAG_REVIEW, ADMIN_AGENT_CHAT } from './routes';
+import { UserProvider } from '../context/UserContext';
 
 // screens
 import HomeScreen from '../screens/HomeScreen';
@@ -119,15 +120,16 @@ function Tabs() {
 
 export default function RootNavigator() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
-        {/* --- Auth flow --- */}
-        <Stack.Screen name="Welcome" component={WelcomeScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} />
+    <UserProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
+          {/* --- Auth flow --- */}
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="SignUp" component={SignUpScreen} />
 
-        {/* --- App tabs (ONLY place where Home lives) --- */}
-        <Stack.Screen name={ROOT_TABS} component={Tabs} />
+          {/* --- App tabs (ONLY place where Home lives) --- */}
+          <Stack.Screen name={ROOT_TABS} component={Tabs} />
         <Stack.Screen
           name={ADMIN_ROOT}
           component={AdminNavigator}
@@ -205,9 +207,10 @@ export default function RootNavigator() {
         <Stack.Screen name="Preview" component={PreviewScreen} />
         <Stack.Screen name="Result" component={ResultScreen} />
         <Stack.Screen name="FlagUnsure" component={FlagUnsureScreen} />
-        <Stack.Screen name="ObservationDetail" component={ObservationDetailScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+          <Stack.Screen name="ObservationDetail" component={ObservationDetailScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </UserProvider>
   );
 }
 

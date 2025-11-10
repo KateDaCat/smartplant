@@ -6,7 +6,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native';
 
 // ⬇️ NEW: import mock data from a single place
-import { MOCK_POSTS, mockUser } from '../data/mockPlants';
+import { MOCK_POSTS } from '../data/mockPlants';
+import { useUser } from '../context/UserContext';
 
 function fmt(iso) {
   try {
@@ -26,6 +27,7 @@ function fmt(iso) {
 export default function ProfileScreen() {
   const nav = useNavigation();
   const insets = useSafeAreaInsets();
+  const { user } = useUser();
 
   const [plants] = useState(MOCK_POSTS);
   const hasPosts = plants.length > 0;
@@ -80,10 +82,10 @@ export default function ProfileScreen() {
       <View style={[s.header, { paddingTop: insets.top + 12 }]}>
         <View style={s.headerRow}>
           <View style={s.profileInfo}>
-            <Image source={{ uri: mockUser.avatar }} style={s.avatar} />
+            <Image source={{ uri: user.avatar }} style={s.avatar} />
             <View>
-              <Text style={s.name}>{mockUser.username}</Text>
-              <Text style={s.uid}>UID: {mockUser.uid}</Text>
+              <Text style={s.name}>{user.username}</Text>
+              <Text style={s.uid}>UID: {user.uid}</Text>
             </View>
           </View>
           <Pressable
