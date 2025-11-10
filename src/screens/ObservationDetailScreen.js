@@ -118,13 +118,7 @@ export default function ObservationDetailScreen() {
             )}
           </View>
 
-          {!!showLow && (
-            <View style={s.bannerLow}>
-              <Text style={s.bannerTxt}>
-                Confidence is low. Consider flagging for human review.
-              </Text>
-            </View>
-          )}
+            {/* low confidence banner removed for user view */}
         </View>
 
         {/* Meta card */}
