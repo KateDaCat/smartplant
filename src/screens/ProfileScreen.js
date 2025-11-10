@@ -200,9 +200,10 @@ const s = StyleSheet.create({
     backgroundColor: '#ffffff',
     paddingVertical: 14,
     paddingHorizontal: 18,
+    alignItems: 'center',
   },
   statBlock: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   statLabel: { fontSize: 12, fontWeight: '600', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.6 },
   statValue: { fontSize: 24, fontWeight: '800', color: '#244332', marginTop: 6 },
