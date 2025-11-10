@@ -128,13 +128,14 @@ export default function SettingsScreen() {
                 source={{ uri: avatarUri || mockUser.avatar }}
                 style={styles.avatarImage}
               />
-                <TouchableOpacity
-                  style={styles.avatarCameraButton}
-                  onPress={() => setPickerVisible(true)}
-                  accessibilityRole="button"
-                >
-                  <Ionicons name="camera" size={18} color="#FFFFFF" />
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.editAvatarButton}
+                onPress={() => setPickerVisible(true)}
+                accessibilityRole="button"
+              >
+                <Ionicons name="create-outline" size={16} color="#0F172A" />
+                <Text style={styles.editAvatarText}>Edit avatar</Text>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.field}>
@@ -254,20 +255,20 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
     backgroundColor: '#E5E7EB',
   },
-  avatarCameraButton: {
-    position: 'absolute',
-    bottom: -6,
-    right: 8,
-    backgroundColor: '#2F6C4F',
-    borderRadius: 20,
-    padding: 8,
-    borderWidth: 2,
-    borderColor: '#F6F9F4',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+  editAvatarButton: {
+    marginTop: 12,
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    backgroundColor: '#EEF5F0',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  editAvatarText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0F172A',
   },
   field: {
     marginBottom: 18,
