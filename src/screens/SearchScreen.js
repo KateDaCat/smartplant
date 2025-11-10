@@ -258,11 +258,6 @@ export default function SearchScreen() {
               <Text style={s.feedTitle}>
                 {showForYou ? 'For You' : 'Results'}
               </Text>
-              <Text style={s.feedSubtitle}>
-                {showForYou
-                  ? 'Latest plant captures from fellow explorers.'
-                  : 'Matching plants based on your search or filters.'}
-              </Text>
           </View>
         }
         ListEmptyComponent={
@@ -338,7 +333,6 @@ const s = StyleSheet.create({
     letterSpacing: 0.4,
   },
   feedTitle: {fontSize: 20, fontWeight: '800', color: '#1F2A37', marginTop: 4},
-  feedSubtitle: {color: '#475569'},
   dropdown: {position: 'relative'},
   pickerButton: {
     height: 46,
