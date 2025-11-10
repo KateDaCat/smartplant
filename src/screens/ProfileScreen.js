@@ -41,9 +41,6 @@ export default function ProfileScreen() {
     const imgSource =
       typeof item.photoUri === 'string' ? { uri: item.photoUri } : item.photoUri;
 
-    const displayName = user.username || item.uploadedBy || 'Unknown user';
-    const displayUserId = user.uid ?? item.userId ?? 'Unknown';
-
     const openObservation = () =>
       nav.navigate('ObservationDetail', {
         id: item.id,
@@ -65,27 +62,6 @@ export default function ProfileScreen() {
 
     return (
       <View style={s.post}>
-        <View style={s.postHeader}>
-          <View style={s.userInfo}>
-            <View style={s.userBadge}>
-              <Text style={s.userBadgeText}>
-                {(displayName || '?').slice(0, 2).toUpperCase()}
-              </Text>
-            </View>
-            <View>
-              <Text style={s.username}>{displayName}</Text>
-              <Text style={s.userId}>User ID: {displayUserId}</Text>
-            </View>
-          </View>
-          <Pressable
-            style={s.viewButton}
-            onPress={openObservation}
-            android_ripple={{ color: '#00000010', borderless: false }}
-          >
-            <Text style={s.viewButtonText}>View</Text>
-          </Pressable>
-        </View>
-
         <Pressable
           style={s.imageWrap}
           onPress={openObservation}
@@ -95,9 +71,18 @@ export default function ProfileScreen() {
         </Pressable>
 
         <View style={s.postBody}>
-          <Text numberOfLines={2} style={s.postTitle}>
-            {item.speciesName || item.commonName || 'Unknown species'}
-          </Text>
+          <View style={s.postBodyHeader}>
+            <Text numberOfLines={2} style={s.postTitle}>
+              {item.speciesName || item.commonName || 'Unknown species'}
+            </Text>
+            <Pressable
+              style={s.viewButton}
+              onPress={openObservation}
+              android_ripple={{ color: '#00000010', borderless: false }}
+            >
+              <Text style={s.viewButtonText}>View</Text>
+            </Pressable>
+          </View>
           <Text style={s.postMeta}>
             {item.locationName ? item.locationName : 'Location not recorded'}
           </Text>
@@ -213,52 +198,14 @@ const s = StyleSheet.create({
     color: '#335a44',
   },
 
-  listContent: { paddingHorizontal: 0, paddingBottom: 36, paddingTop: 12 },
+  listContent: { paddingHorizontal: 0, paddingBottom: 48, paddingTop: 12 },
 
   post: {
-    marginHorizontal: 16,
-    marginBottom: 24,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E3E8EF',
-    shadowColor: '#0F172A',
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
-  },
-  postHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 12,
+    width: '100%',
+    marginBottom: 32,
     backgroundColor: '#FFFFFF',
   },
-  userInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  userBadge: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#D8E9DF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  userBadgeText: { fontSize: 16, fontWeight: '700', color: '#24543B' },
-  username: { fontSize: 15, fontWeight: '700', color: '#1F2A37' },
-  userId: { fontSize: 12, fontWeight: '600', color: '#64748B', marginTop: 2 },
-  viewButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: '#2F6C4F',
-  },
-  viewButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
   imageWrap: {
-    overflow: 'hidden',
     backgroundColor: '#CBD5F5',
   },
   postImage: {
@@ -266,13 +213,26 @@ const s = StyleSheet.create({
     height: 320,
   },
   postBody: {
-    paddingHorizontal: 18,
-    paddingTop: 16,
-    paddingBottom: 20,
-    gap: 6,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 18,
+    gap: 8,
     backgroundColor: '#FFFFFF',
   },
-  postTitle: { fontSize: 17, fontWeight: '800', color: '#0F172A' },
+  postBodyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  postTitle: { flex: 1, fontSize: 17, fontWeight: '800', color: '#0F172A' },
+  viewButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: '#2F6C4F',
+  },
+  viewButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
   postMeta: { fontSize: 13.5, fontWeight: '600', color: '#334155' },
   postTimestamp: { fontSize: 12.5, fontWeight: '600', color: '#64748B' },
 

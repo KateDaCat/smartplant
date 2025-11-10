@@ -117,22 +117,16 @@ export default function SearchScreen() {
           source: item.source,
         });
 
-      const displayUserId =
-        item.userId ?? item.uploaderId ?? item.userUid ?? 'Unknown';
+      const userInitials = (item.uploadedBy || '?').slice(0, 2).toUpperCase();
 
       return (
         <View style={s.post}>
           <View style={s.postHeader}>
             <View style={s.userInfo}>
               <View style={s.userBadge}>
-                <Text style={s.userBadgeText}>
-                  {(item.uploadedBy || '?').slice(0, 2).toUpperCase()}
-                </Text>
+                <Text style={s.userBadgeText}>{userInitials}</Text>
               </View>
-              <View>
-                <Text style={s.username}>{item.uploadedBy || 'Unknown user'}</Text>
-                <Text style={s.userId}>User ID: {displayUserId}</Text>
-              </View>
+              <Text style={s.username}>{item.uploadedBy || 'Unknown user'}</Text>
             </View>
             <Pressable
               style={s.viewButton}
@@ -315,8 +309,8 @@ const FilterChip = React.memo(({label, active, onPress}) => (
 FilterChip.displayName = 'FilterChip';
 
 const s = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#F7F9F6'},
-  listContent: {paddingBottom: 32},
+  container: {flex: 1, backgroundColor: '#FFFFFF'},
+  listContent: {paddingBottom: 48},
   header: {paddingHorizontal: 16, paddingTop: 28, paddingBottom: 16, gap: 12},
   title: {fontSize: 26, fontWeight: 'bold', color: '#1F2A37'},
   subtitle: {color: '#475569', lineHeight: 20},
@@ -376,29 +370,19 @@ const s = StyleSheet.create({
   pickerButtonText: {color: '#1F2937', fontWeight: '700'},
   pickerButtonChevron: {color: '#2F6C4F', fontSize: 12},
   post: {
-    marginHorizontal: 16,
-    marginBottom: 28,
+    width: '100%',
+    marginBottom: 36,
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E3E8EF',
-    shadowColor: '#0F172A',
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: {width: 0, height: 6},
-    elevation: 3,
   },
   postHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 12,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 10,
   },
-  userInfo: {flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1},
+  userInfo: {flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1},
   userBadge: {
     width: 42,
     height: 42,
@@ -407,9 +391,8 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  userBadgeText: {fontSize: 16, fontWeight: '700', color: '#24543B'},
+  userBadgeText: {fontSize: 15, fontWeight: '700', color: '#24543B'},
   username: {fontSize: 15, fontWeight: '700', color: '#1F2A37'},
-  userId: {fontSize: 12, fontWeight: '600', color: '#64748B', marginTop: 2},
   viewButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -417,18 +400,15 @@ const s = StyleSheet.create({
     backgroundColor: '#2F6C4F',
   },
   viewButtonText: {color: '#FFFFFF', fontWeight: '700', fontSize: 13},
-  imageWrap: {
-    overflow: 'hidden',
-    backgroundColor: '#CBD5F5',
-  },
+  imageWrap: {backgroundColor: '#CBD5F5'},
   postImage: {
     width: '100%',
     height: 320,
   },
   postBody: {
-    paddingHorizontal: 18,
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 18,
     gap: 6,
     backgroundColor: '#FFFFFF',
   },
