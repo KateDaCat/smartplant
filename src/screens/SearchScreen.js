@@ -98,8 +98,6 @@ export default function SearchScreen() {
   const renderItem = ({item}) => {
     const imgSource =
       typeof item.photoUri === 'string' ? {uri: item.photoUri} : item.photoUri;
-    const confidence =
-      typeof item.confidence === 'number' ? Math.round(item.confidence) : null;
 
     return (
       <Pressable
@@ -130,43 +128,10 @@ export default function SearchScreen() {
           <Text numberOfLines={1} style={s.cardTitle}>
             {item.speciesName || item.commonName || 'Unknown species'}
           </Text>
-          <Text style={s.cardMeta}>
-            Captured by {item.uploadedBy} • {formatDate(item.createdAt)}
+          <Text style={s.cardSub}>
+            {item.isEndangered ? 'Location: Hidden' : `Location: ${item.locationName || 'Unknown'}`}
           </Text>
-          <View style={s.chipRow}>
-            <View style={s.chip}>
-              <Text style={s.chipText}>
-                {item.source === 'camera' ? 'Camera capture' : 'Library upload'}
-              </Text>
-            </View>
-            {item.isEndangered ? (
-              <View style={[s.chip, s.chipDanger]}>
-                <Text style={[s.chipText, s.chipTextDanger]}>Endangered</Text>
-              </View>
-            ) : null}
-            {item.flagged ? (
-              <View style={[s.chip, s.chipWarn]}>
-                <Text style={[s.chipText, s.chipTextWarn]}>Flagged</Text>
-              </View>
-            ) : null}
-            {confidence !== null ? (
-              <View style={s.chip}>
-                <Text style={s.chipText}>{confidence}% confidence</Text>
-              </View>
-            ) : null}
-          </View>
-          {item.isEndangered ? (
-            <Text style={s.locationHidden}>
-              Location hidden to protect this species.
-            </Text>
-          ) : item.locationName ? (
-            <Text style={s.location}>Location: {item.locationName}</Text>
-          ) : null}
-          {item.notes ? (
-            <Text numberOfLines={2} style={s.notes}>
-              “{item.notes}”
-            </Text>
-          ) : null}
+          <Text style={s.cardMeta}>{formatDate(item.createdAt)}</Text>
         </View>
       </Pressable>
     );
@@ -323,10 +288,15 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: '#E5EFE9',
+    backgroundColor: '#DDEEE6',
+    borderWidth: 1,
+    borderColor: '#B4D6C3',
   },
-  chipBaseActive: {backgroundColor: '#335A44'},
-  chipBaseText: {color: '#335A44', fontWeight: '700'},
+  chipBaseActive: {
+    backgroundColor: '#2F6C4F',
+    borderColor: '#2F6C4F',
+  },
+  chipBaseText: {color: '#2F6C4F', fontWeight: '700'},
   chipBaseTextActive: {color: '#FFFFFF'},
   resultCount: {
     fontSize: 12,
@@ -359,22 +329,8 @@ const s = StyleSheet.create({
   },
   cardBody: {flex: 1, gap: 8},
   cardTitle: {fontSize: 16, fontWeight: '800', color: '#1F2937'},
+  cardSub: {color: '#334155', fontSize: 13, fontWeight: '600'},
   cardMeta: {color: '#64748B', fontSize: 12.5},
-  chipRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
-  chip: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: '#E5EFE9',
-  },
-  chipDanger: {backgroundColor: '#FEE2E2'},
-  chipWarn: {backgroundColor: '#FDE68A'},
-  chipText: {fontSize: 11.5, fontWeight: '700', color: '#335A44'},
-  chipTextDanger: {color: '#991B1B'},
-  chipTextWarn: {color: '#92400E'},
-  location: {color: '#334155', fontSize: 12.5, fontWeight: '600'},
-  locationHidden: {color: '#B91C1C', fontSize: 12.5, fontWeight: '600'},
-  notes: {color: '#475569', fontStyle: 'italic'},
   emptyState: {
     marginTop: 32,
     marginHorizontal: 16,
