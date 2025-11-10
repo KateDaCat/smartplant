@@ -66,22 +66,6 @@ export default function SettingsScreen() {
                 source={{ uri: avatarUrl || mockUser.avatar }}
                 style={styles.avatarImage}
               />
-              <View style={styles.avatarActions}>
-                <TouchableOpacity
-                  onPress={() => setAvatarUrl(mockUser.avatar)}
-                  style={styles.avatarActionBtn}
-                >
-                  <Ionicons name="refresh" size={18} color="#0F172A" />
-                  <Text style={styles.avatarActionText}>Reset</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setAvatarUrl('')}
-                  style={styles.avatarActionBtn}
-                >
-                  <Ionicons name="close" size={18} color="#B91C1C" />
-                  <Text style={[styles.avatarActionText, { color: '#B91C1C' }]}>Clear</Text>
-                </TouchableOpacity>
-              </View>
             </View>
 
             <View style={styles.field}>
@@ -178,25 +162,6 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#FFFFFF',
     backgroundColor: '#E5E7EB',
-  },
-  avatarActions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 10,
-  },
-  avatarActionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: '#EEF4F0',
-  },
-  avatarActionText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#0F172A',
   },
   field: {
     marginBottom: 18,
