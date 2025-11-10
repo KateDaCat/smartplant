@@ -1,24 +1,93 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  VictoryArea,
-  VictoryAxis,
-  VictoryChart,
-  VictoryLine,
-  VictoryScatter,
-} from 'victory-native';
+import { useNavigation } from '@react-navigation/native';
+import { ADMIN_IOT_ANALYTICS } from '../../navigation/routes';
 
 const formatDate = (iso) => {
   const date = new Date(iso);
   return Number.isNaN(date.getTime()) ? iso : date.toLocaleString();
 };
 
-const formatTime = (iso) => {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '--';
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const HOURS = 60 * 60 * 1000;
+const DAYS = 24 * HOURS;
+
+const generateMockHistory = () => {
+  const now = new Date();
+  const start = new Date(now.getTime() - 7 * DAYS);
+  const steps = 56; // 7 days @ 3 hour intervals
+
+  return Array.from({ length: steps + 1 }, (_, index) => {
+    const pointDate = new Date(start.getTime() + index * 3 * HOURS);
+    const phase = index / 3.4;
+    const tempBase = 25 + 3.5 * Math.sin(phase) + 0.6 * Math.cos(phase * 1.2);
+    const humidityBase = 68 + 12 * Math.sin(phase / 1.6 + 1) + 3 * Math.cos(phase / 2.8);
+    const soilBase = 52 + 7 * Math.cos(phase / 1.3 + 0.4) + 2 * Math.sin(phase / 4);
+    const motionDetected = ((index + 3) % 9 === 0) || ((index + 5) % 13 === 0);
+
+    return {
+      timestamp: pointDate.toISOString(),
+      temperature: Number(tempBase.toFixed(1)),
+      humidity: Math.max(40, Math.min(98, Math.round(humidityBase))),
+      soil_moisture: Math.max(32, Math.min(90, Math.round(soilBase))),
+      motion_detected: motionDetected,
+    };
+  });
+};
+
+const coerceMetricNumber = (value) => {
+  const numeric = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+};
+
+const normalizeHistoryEntry = (entry) => {
+  if (!entry) return null;
+
+  const timestamp =
+    entry.timestamp ??
+    entry.recorded_at ??
+    entry.created_at ??
+    entry.time ??
+    entry.datetime;
+
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const readings = entry.readings ?? entry.metrics ?? entry;
+
+  const temperature =
+    coerceMetricNumber(readings?.temperature ?? readings?.temp ?? entry.temperature);
+  const humidity =
+    coerceMetricNumber(readings?.humidity ?? readings?.relative_humidity ?? entry.humidity);
+  const soil =
+    coerceMetricNumber(
+      readings?.soil_moisture ??
+        readings?.soilMoisture ??
+        readings?.soil ??
+        entry.soil_moisture
+    );
+
+  if ([temperature, humidity, soil].some((val) => val === null)) {
+    return null;
+  }
+
+  const motionDetected =
+    typeof readings?.motion_detected === 'boolean'
+      ? readings.motion_detected
+      : typeof entry.motion_detected === 'boolean'
+        ? entry.motion_detected
+        : Boolean(readings?.motion ?? readings?.motionDetected);
+
+  return {
+    timestamp: date.toISOString(),
+    temperature,
+    humidity,
+    soil_moisture: soil,
+    motion_detected: motionDetected,
+  };
 };
 
 const SensorCard = ({ icon, title, value, unit, helper, alert }) => (
@@ -48,8 +117,8 @@ const SensorCard = ({ icon, title, value, unit, helper, alert }) => (
 );
 
 export default function AdminIotDetailScreen({ route }) {
+  const navigation = useNavigation();
   const device = route?.params?.device;
-  const [historyVisible, setHistoryVisible] = useState(false);
 
   if (!device) {
     return (
@@ -62,133 +131,31 @@ export default function AdminIotDetailScreen({ route }) {
   const alerts = Array.isArray(device.alerts) ? device.alerts : [];
 
   const historySeries = useMemo(() => {
-    if (Array.isArray(device.history) && device.history.length > 0) {
-      return device.history;
-    }
+    const normalizedHistory = Array.isArray(device.history)
+      ? device.history.map(normalizeHistoryEntry).filter(Boolean)
+      : [];
 
-    return [
-      {
-        timestamp: '2025-10-21T11:45:00Z',
-        temperature: 27.6,
-        humidity: 82,
-        soil_moisture: 44,
-        motion_detected: false,
-      },
-      {
-        timestamp: '2025-10-21T10:40:00Z',
-        temperature: 27.2,
-        humidity: 80,
-        soil_moisture: 46,
-        motion_detected: false,
-      },
-      {
-        timestamp: '2025-10-21T09:30:00Z',
-        temperature: 26.4,
-        humidity: 77,
-        soil_moisture: 48,
-        motion_detected: true,
-      },
-      {
-        timestamp: '2025-10-21T08:15:00Z',
-        temperature: 25.9,
-        humidity: 74,
-        soil_moisture: 52,
-        motion_detected: false,
-      },
-    ];
+    const fallbackHistory = generateMockHistory();
+    const merged = [...fallbackHistory];
+
+    normalizedHistory.forEach((entry) => {
+      merged.push(entry);
+    });
+
+    const uniqueMap = new Map();
+    merged.forEach((entry) => {
+      uniqueMap.set(entry.timestamp, entry);
+    });
+
+    return Array.from(uniqueMap.values()).sort(
+      (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+    );
   }, [device]);
 
   const formatNumber = (val, digits = 1) => {
     if (typeof val !== 'number' || Number.isNaN(val)) return '--';
     return val.toFixed(digits);
   };
-
-  const formatMetricValue = (val, digits, unit) => {
-    if (typeof val !== 'number' || Number.isNaN(val)) return '--';
-    return `${formatNumber(val, digits)}${unit}`;
-  };
-
-  const chartMetrics = useMemo(() => {
-    const configs = [
-      {
-        key: 'temperature',
-        label: 'Temperature',
-        unit: '°C',
-        color: '#F97316',
-        digits: 1,
-        getValue: (entry) => entry.temperature,
-      },
-      {
-        key: 'humidity',
-        label: 'Humidity',
-        unit: '%',
-        color: '#0EA5E9',
-        digits: 0,
-        getValue: (entry) => entry.humidity,
-      },
-      {
-        key: 'soil',
-        label: 'Soil Moisture',
-        unit: '%',
-        color: '#22C55E',
-        digits: 0,
-        getValue: (entry) => entry.soil_moisture,
-      },
-    ];
-
-    return configs.map((config) => {
-      const points = historySeries.reduce((acc, entry, index) => {
-        const raw = config.getValue(entry);
-        if (typeof raw === 'number' && !Number.isNaN(raw)) {
-          acc.push({
-            key: `${config.key}-${index}`,
-            raw,
-            timestamp: entry.timestamp,
-            index: index + 1,
-            label: formatTime(entry.timestamp),
-          });
-        }
-        return acc;
-      }, []);
-
-      const values = points.map((point) => point.raw);
-      const min = values.length > 0 ? Math.min(...values) : null;
-      const max = values.length > 0 ? Math.max(...values) : null;
-      const span = min !== null && max !== null ? max - min : null;
-      const padding = span !== null && span !== 0 ? span * 0.2 : 1;
-      const domain =
-        min !== null && max !== null
-          ? { min: min - padding, max: max + padding }
-          : { min: 0, max: 1 };
-
-      return {
-        ...config,
-        min,
-        max,
-        domain,
-        data: points.map((point) => ({
-          x: point.index,
-          y: point.raw,
-          label: point.label,
-        })),
-        ticks: points.map((point) => ({
-          value: point.index,
-          label: point.label,
-        })),
-        latest: points.length > 0 ? points[points.length - 1].raw : null,
-      };
-    });
-  }, [historySeries]);
-
-  const motionTimeline = useMemo(
-    () =>
-      historySeries.map((entry, index) => ({
-        key: `motion-${index}`,
-        timestamp: entry.timestamp,
-        detected: Boolean(entry.motion_detected),
-      })),
-    [historySeries]
-  );
 
   const sensorCards = [
     {
@@ -242,6 +209,18 @@ export default function AdminIotDetailScreen({ route }) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            onPress={() => navigation.canGoBack() && navigation.goBack()}
+            style={styles.backButton}
+            activeOpacity={0.7}
+            accessibilityLabel="Go back"
+          >
+            <Ionicons name="arrow-back" size={20} color="#0F172A" />
+            <Text style={styles.backButtonText}>Back</Text>
+          </TouchableOpacity>
+        </View>
+
         <Image source={imageSource} style={styles.photo} resizeMode="cover" />
 
         <Text style={styles.title}>{device.device_name}</Text>
@@ -272,170 +251,18 @@ export default function AdminIotDetailScreen({ route }) {
           <TouchableOpacity
             style={styles.historyButton}
             activeOpacity={0.85}
-            onPress={() => setHistoryVisible(true)}
+            onPress={() =>
+              navigation.navigate(ADMIN_IOT_ANALYTICS, {
+                device,
+                history: historySeries,
+              })
+            }
           >
-            <Text style={styles.historyButtonText}>View Previous Data</Text>
+            <Text style={styles.historyButtonText}>View Historical Data</Text>
           </TouchableOpacity>
 
         <Text style={styles.updatedText}>Last updated {formatDate(device.last_updated)}</Text>
       </ScrollView>
-
-        <Modal
-          visible={historyVisible}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setHistoryVisible(false)}
-        >
-          <View style={styles.modalBackdrop}>
-            <View style={styles.modalCard}>
-              <View style={styles.modalHeader}>
-                <View>
-                  <Text style={styles.modalTitle}>Historical Sensor Data</Text>
-                  <Text style={styles.modalSubtitle}>
-                    Quick snapshot of recent trends. Hook up to real analytics when ready.
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  accessibilityLabel="Close historical data view"
-                  onPress={() => setHistoryVisible(false)}
-                >
-                  <Ionicons name="close" size={22} color="#0F172A" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView contentContainerStyle={styles.chartList}>
-                {chartMetrics.map((metric) => {
-                  const latestLabel = metric.latest !== null
-                    ? formatMetricValue(metric.latest, metric.digits, metric.unit)
-                    : 'No data yet';
-                  const peakLabel = formatMetricValue(metric.max, metric.digits, metric.unit);
-                  const lowLabel = formatMetricValue(metric.min, metric.digits, metric.unit);
-                  const tickValues =
-                    metric.ticks.length > 4
-                      ? metric.ticks
-                          .filter((_, index, arr) =>
-                            index === 0 ||
-                            index === arr.length - 1 ||
-                            index === Math.floor(arr.length / 2)
-                          )
-                          .map((tick) => tick.value)
-                      : metric.ticks.map((tick) => tick.value);
-                  const labelForTick = (value) => {
-                    const tick = metric.ticks.find((item) => item.value === value);
-                    return tick ? tick.label : value;
-                  };
-
-                  return (
-                    <View key={metric.key} style={styles.chartCard}>
-                      <View style={styles.chartHeader}>
-                        <View style={[styles.chartLegendDot, { backgroundColor: metric.color }]} />
-                        <View style={styles.chartHeaderText}>
-                          <Text style={styles.chartTitle}>{metric.label}</Text>
-                          <Text style={styles.chartSubtitle}>Latest {latestLabel}</Text>
-                        </View>
-                      </View>
-                      <Text style={styles.chartRange}>
-                        Peak {peakLabel} • Low {lowLabel}
-                      </Text>
-                        {metric.data.length > 0 ? (
-                        <VictoryChart
-                          height={220}
-                          padding={{ top: 18, bottom: 54, left: 54, right: 20 }}
-                          domain={{ y: [metric.domain.min, metric.domain.max] }}
-                        >
-                          <VictoryAxis
-                            dependentAxis
-                            style={{
-                              axis: { stroke: '#E2E8F0' },
-                              grid: { stroke: '#E2E8F0', strokeDasharray: '4,6' },
-                              tickLabels: { fontSize: 11, fill: '#475467' },
-                            }}
-                            tickFormat={(value) => formatNumber(value, metric.digits)}
-                          />
-                          <VictoryAxis
-                            tickValues={tickValues}
-                            tickFormat={labelForTick}
-                            style={{
-                              axis: { stroke: '#E2E8F0' },
-                              tickLabels: {
-                                fontSize: 10,
-                                fill: '#64748B',
-                                angle: -35,
-                                padding: 18,
-                                textAnchor: 'end',
-                              },
-                              grid: { stroke: 'transparent' },
-                            }}
-                          />
-                          <VictoryArea
-                            data={metric.data}
-                            interpolation="monotoneX"
-                            style={{
-                              data: {
-                                fill: `${metric.color}22`,
-                                stroke: 'transparent',
-                              },
-                            }}
-                          />
-                          <VictoryLine
-                            data={metric.data}
-                            interpolation="monotoneX"
-                            style={{
-                              data: {
-                                stroke: metric.color,
-                                strokeWidth: 2,
-                              },
-                            }}
-                          />
-                          <VictoryScatter
-                            data={metric.data}
-                            size={3.5}
-                            style={{
-                              data: { fill: metric.color },
-                            }}
-                          />
-                        </VictoryChart>
-                      ) : (
-                        <Text style={styles.chartEmpty}>Not enough readings to chart yet.</Text>
-                      )}
-                    </View>
-                  );
-                })}
-
-                {motionTimeline.length > 0 && (
-                  <View style={styles.motionSection}>
-                    <Text style={styles.motionTitle}>Motion detections</Text>
-                    <View style={styles.motionChips}>
-                      {motionTimeline.map((slot) => (
-                        <View
-                          key={slot.key}
-                          style={[
-                            styles.motionChip,
-                            slot.detected ? styles.motionChipActive : styles.motionChipMuted,
-                          ]}
-                        >
-                          <Ionicons
-                            name={slot.detected ? 'walk' : 'walk-outline'}
-                            size={14}
-                            color={slot.detected ? '#1E3A8A' : '#94A3B8'}
-                          />
-                          <Text style={styles.motionChipText}>{formatTime(slot.timestamp)}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                )}
-              </ScrollView>
-
-                <View style={styles.modalFooter}>
-                  <Ionicons name="analytics-outline" size={16} color="#2563EB" />
-                  <Text style={styles.modalFooterText}>
-                    Tip: hook these Victory charts up to your real telemetry API once the backend endpoints are live.
-                  </Text>
-                </View>
-            </View>
-          </View>
-        </Modal>
     </SafeAreaView>
   );
 }
@@ -454,6 +281,24 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 18,
   },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      marginBottom: 12,
+    },
+    backButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: 6,
+      paddingHorizontal: 4,
+    },
+    backButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#0F172A',
+    },
   title: {
     fontSize: 22,
     fontWeight: '700',
@@ -576,7 +421,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
     historyButton: {
-      marginTop: 4,
+      marginTop: 12,
       alignSelf: 'stretch',
       alignItems: 'center',
       justifyContent: 'center',
@@ -595,144 +440,5 @@ const styles = StyleSheet.create({
       color: '#FFFFFF',
       letterSpacing: 0.2,
       textTransform: 'uppercase',
-    },
-    modalBackdrop: {
-      flex: 1,
-      backgroundColor: 'rgba(15, 23, 42, 0.45)',
-      padding: 20,
-      justifyContent: 'flex-end',
-    },
-    modalCard: {
-      borderTopLeftRadius: 22,
-      borderTopRightRadius: 22,
-      paddingHorizontal: 20,
-      paddingTop: 20,
-      paddingBottom: 28,
-      backgroundColor: '#FFFFFF',
-      gap: 18,
-    },
-    modalHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      gap: 16,
-    },
-    modalTitle: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: '#0F172A',
-    },
-    modalSubtitle: {
-      marginTop: 4,
-      fontSize: 12,
-      color: '#64748B',
-      lineHeight: 18,
-    },
-    chartList: {
-      paddingBottom: 12,
-      gap: 16,
-    },
-    chartCard: {
-      borderRadius: 18,
-      borderWidth: 1,
-      borderColor: '#E2E8F0',
-      backgroundColor: '#F8FBFF',
-      padding: 16,
-      gap: 12,
-      shadowColor: '#000',
-      shadowOpacity: 0.03,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 2,
-    },
-    chartHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    chartLegendDot: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-    },
-    chartHeaderText: {
-      flex: 1,
-      gap: 2,
-    },
-    chartTitle: {
-      fontSize: 15,
-      fontWeight: '700',
-      color: '#0F172A',
-    },
-    chartSubtitle: {
-      fontSize: 12,
-      color: '#475467',
-    },
-    chartRange: {
-      fontSize: 12,
-      color: '#5B6C7C',
-    },
-    chartEmpty: {
-      paddingVertical: 36,
-      textAlign: 'center',
-      fontSize: 12,
-      color: '#64748B',
-    },
-    motionSection: {
-      marginTop: 8,
-      borderRadius: 18,
-      borderWidth: 1,
-      borderColor: '#E2E8F0',
-      backgroundColor: '#FFFFFF',
-      padding: 16,
-      gap: 12,
-    },
-    motionTitle: {
-      fontSize: 12,
-      fontWeight: '700',
-      color: '#0F172A',
-      textTransform: 'uppercase',
-      letterSpacing: 0.6,
-    },
-    motionChips: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
-    },
-    motionChip: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 999,
-      borderWidth: 1,
-    },
-    motionChipActive: {
-      backgroundColor: '#EEF2FF',
-      borderColor: '#C7D2FE',
-    },
-    motionChipMuted: {
-      backgroundColor: '#F1F5F9',
-      borderColor: '#E2E8F0',
-    },
-    motionChipText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: '#334155',
-    },
-    modalFooter: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 10,
-      padding: 14,
-      borderRadius: 16,
-      backgroundColor: '#EEF2FF',
-    },
-    modalFooterText: {
-      flex: 1,
-      fontSize: 12,
-      color: '#1E3A8A',
-      lineHeight: 18,
     },
 });
