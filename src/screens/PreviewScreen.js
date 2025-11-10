@@ -12,7 +12,7 @@ const LOW_CONFIDENCE_THRESHOLD = 60;
 export default function PreviewScreen() {
   const nav = useNavigation();
   const route = useRoute();
-  const { uri, source, exif } = route.params ?? {};
+  const { uri, source, exif, onConfirm } = route.params ?? {};
   const [loading, setLoading] = useState(false);
 
   if (!uri) {
@@ -29,39 +29,44 @@ export default function PreviewScreen() {
   const onDone = async () => {
     try {
       setLoading(true);
-      const USE_MOCK = true;
+    if (typeof onConfirm === 'function') {
+      onConfirm(uri);
+      nav.goBack();
+      return;
+    }
 
-      let result;
-      if (USE_MOCK) {
-        await new Promise(r => setTimeout(r, 1200));
-        // 🔄 Use the shared mock object, keep your current photo & fresh timestamp
-        result = {
-          ...MOCK_IDENTIFY_RESULT,
-          photoUri: uri ?? MOCK_IDENTIFY_RESULT.photoUri,
-          uploadDate: new Date().toLocaleString(),
-        };
-      } else {
-        const form = new FormData();
-        form.append('image', { uri, name: 'photo.jpg', type: 'image/jpeg' });
-        form.append('source', source || 'unknown');
-        form.append('exif', JSON.stringify(exif ?? {}));
+    const USE_MOCK = true;
 
-        const res = await fetch(`${API_BASE}/api/identify`, { method: 'POST', headers: { Accept: 'application/json' }, body: form });
-        if (!res.ok) throw new Error(`Identify failed: ${res.status}`);
-        const data = await res.json();
-        result = {
-          plantName: data.species_name,
-          confidence: Number(data.confidence_score) || 0,
-          conservationStatus: data.conservation_status || 'Unknown',
-          region: data.region || 'Unknown',
-          locationName: data.location_name || 'Unknown location',
-          uploadedBy: data.uploaded_by || 'You',
-          uploadDate: data.uploaded_at || new Date().toISOString(),
-          photoUri: uri,
-        };
-      }
+    let result;
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 1200));
+      result = {
+        ...MOCK_IDENTIFY_RESULT,
+        photoUri: uri ?? MOCK_IDENTIFY_RESULT.photoUri,
+        uploadDate: new Date().toLocaleString(),
+      };
+    } else {
+      const form = new FormData();
+      form.append('image', { uri, name: 'photo.jpg', type: 'image/jpeg' });
+      form.append('source', source || 'unknown');
+      form.append('exif', JSON.stringify(exif ?? {}));
 
-      nav.replace('Result', { ...result, lowConfidence: result.confidence < LOW_CONFIDENCE_THRESHOLD });
+      const res = await fetch(`${API_BASE}/api/identify`, { method: 'POST', headers: { Accept: 'application/json' }, body: form });
+      if (!res.ok) throw new Error(`Identify failed: ${res.status}`);
+      const data = await res.json();
+      result = {
+        plantName: data.species_name,
+        confidence: Number(data.confidence_score) || 0,
+        conservationStatus: data.conservation_status || 'Unknown',
+        region: data.region || 'Unknown',
+        locationName: data.location_name || 'Unknown location',
+        uploadedBy: data.uploaded_by || 'You',
+        uploadDate: data.uploaded_at || new Date().toISOString(),
+        photoUri: uri,
+      };
+    }
+
+    nav.replace('Result', { ...result, lowConfidence: result.confidence < LOW_CONFIDENCE_THRESHOLD });
     } catch (e) {
       console.warn(e);
       Alert.alert('Scan failed', 'Could not analyze the photo. Please try again.');
