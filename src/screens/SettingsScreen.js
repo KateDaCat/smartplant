@@ -115,10 +115,7 @@ export default function SettingsScreen() {
         behavior={Platform.select({ ios: 'padding', android: undefined })}
         style={{ flex: 1 }}
       >
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <Text style={styles.title}>Account Settings</Text>
 
           <View style={styles.section}>
@@ -133,7 +130,6 @@ export default function SettingsScreen() {
                 onPress={() => setPickerVisible(true)}
                 accessibilityRole="button"
               >
-                <Ionicons name="create-outline" size={16} color="#0F172A" />
                 <Text style={styles.editAvatarText}>Edit avatar</Text>
               </TouchableOpacity>
             </View>
@@ -155,15 +151,16 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            onPress={handleLogout}
-            style={styles.logoutButton}
-            accessibilityRole="button"
-          >
-            <Ionicons name="log-out-outline" size={20} color="#B91C1C" />
-            <Text style={styles.logoutText}>Logout</Text>
-          </TouchableOpacity>
+          <View style={{ height: 80 }} />
         </ScrollView>
+        <TouchableOpacity
+          onPress={handleLogout}
+          style={[styles.logoutButton, { marginBottom: 24 }]}
+          accessibilityRole="button"
+        >
+          <Ionicons name="log-out-outline" size={20} color="#B91C1C" />
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
       </KeyboardAvoidingView>
 
       <Modal
