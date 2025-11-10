@@ -289,8 +289,8 @@ FilterChip.displayName = 'FilterChip';
 const s = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#F7F9F6'},
   listContent: {paddingBottom: 32},
-  header: {paddingHorizontal: 16, paddingBottom: 16, gap: 16},
-  title: {fontSize: 24, fontWeight: '800', color: '#1F2A37'},
+  header: {paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16, gap: 12},
+  title: {fontSize: 26, fontWeight: '800', color: '#1F2A37'},
   subtitle: {color: '#475569', lineHeight: 20},
   searchBox: {
     height: 48,
