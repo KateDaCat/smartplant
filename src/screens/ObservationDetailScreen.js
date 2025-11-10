@@ -1,8 +1,19 @@
 // src/screens/ObservationDetailScreen.js
-import React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, Pressable, Linking } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Linking,
+  Modal,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 const LOW_CONFIDENCE_THRESHOLD = 60;
 
@@ -17,6 +28,7 @@ function fmtDate(iso) {
 export default function ObservationDetailScreen() {
   const nav = useNavigation();
   const route = useRoute();
+  const [showImage, setShowImage] = useState(false);
 
   // Accept a rich set of params (pass as many as you have)
   const {
@@ -66,15 +78,23 @@ export default function ObservationDetailScreen() {
           <Text style={s.headerTitle}>Observation</Text>
           <View style={{ width: 56 }} />
         </View>
-
-        {/* Photo */}
-        {imageSource ? (
-          <Image source={imageSource} style={s.img} />
-        ) : (
-          <View style={[s.img, s.imgPlaceholder]}>
-            <Text style={{ color: '#888' }}>No photo</Text>
-          </View>
-        )}
+          {/* Photo */}
+          {imageSource ? (
+            <Pressable
+              onPress={() => setShowImage(true)}
+              android_ripple={{ color: '#00000014' }}
+              style={s.imgWrapper}
+            >
+              <Image source={imageSource} style={s.img} />
+              <View style={s.expandBadge}>
+                <Ionicons name="expand-outline" size={20} color="#FFFFFF" />
+              </View>
+            </Pressable>
+          ) : (
+            <View style={[s.img, s.imgPlaceholder]}>
+              <Text style={{ color: '#888' }}>No photo</Text>
+            </View>
+          )}
 
         {/* Title & chips */}
         <View style={s.titleWrap}>
@@ -141,6 +161,28 @@ export default function ObservationDetailScreen() {
           <Pressable style={s.primaryBtn}><Text style={s.primaryTxt}>Share</Text></Pressable>
         </View> */}
       </ScrollView>
+
+        <Modal
+          visible={showImage}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowImage(false)}
+        >
+          <TouchableWithoutFeedback onPress={() => setShowImage(false)}>
+            <View style={s.modalBackdrop}>
+              <TouchableWithoutFeedback>
+                <View style={s.modalContent}>
+                  {imageSource ? (
+                    <Image source={imageSource} style={s.modalImage} resizeMode="contain" />
+                  ) : null}
+                  <Pressable style={s.modalCloseBtn} onPress={() => setShowImage(false)}>
+                    <Text style={s.modalCloseTxt}>Close</Text>
+                  </Pressable>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
     </SafeAreaView>
   );
 }
@@ -174,6 +216,7 @@ const s = StyleSheet.create({
   backTxt: { color: '#2b2b2b', fontWeight: '700' },
   headerTitle: { fontWeight: '800', color: '#2b2b2b' },
 
+  imgWrapper: { position: 'relative' },
   img: {
     width: '100%',
     height: 260,
@@ -182,6 +225,14 @@ const s = StyleSheet.create({
   imgPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  expandBadge: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    padding: 8,
+    borderRadius: 16,
   },
 
   titleWrap: { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#F7F7F7' },
@@ -230,6 +281,34 @@ const s = StyleSheet.create({
     borderRadius: 8,
   },
   mapsTxt: { color: '#2E7D32', fontWeight: '700' },
+
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 16,
+  },
+  modalImage: {
+    width: '100%',
+    height: '70%',
+    borderRadius: 12,
+  },
+  modalCloseBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 999,
+    backgroundColor: '#1E88E5',
+  },
+  modalCloseTxt: {
+    color: '#fff',
+    fontWeight: '700',
+  },
 
   // actionsRow: { paddingHorizontal: 16, marginTop: 12 },
   // primaryBtn: { backgroundColor: '#6DAF7A', paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
