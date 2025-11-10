@@ -1,5 +1,5 @@
 // src/screens/ProfileScreen.js
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,8 +29,6 @@ export default function ProfileScreen() {
 
   const [plants] = useState(MOCK_POSTS);
   const hasPosts = plants.length > 0;
-
-  const headerHeight = useMemo(() => 174, []);
 
   const renderItem = ({ item }) => {
     // Accept either remote URL (string) or local require()
@@ -116,22 +114,30 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>
-      {/* Curved header */}
-      <View style={[s.headerWrap, { paddingTop: insets.top + 8 }]}>
-        <View style={s.headerBg} />
-          <View style={[s.headerContent, { height: headerHeight }]}>
-            <View style={s.headerTopRow}>
-              <Image source={{ uri: mockUser.avatar }} style={s.avatar} />
-              <Pressable
-                style={s.settingsButton}
-                onPress={() => nav.navigate('Settings')}
-                accessibilityRole="button"
-              >
-                <Ionicons name="settings-outline" size={22} color="#1F2A37" />
-              </Pressable>
+      {/* Header */}
+      <View style={[s.header, { paddingTop: insets.top + 12 }]}>
+        <View style={s.headerRow}>
+          <View style={s.profileInfo}>
+            <Image source={{ uri: mockUser.avatar }} style={s.avatar} />
+            <View>
+              <Text style={s.name}>{mockUser.username}</Text>
+              <Text style={s.uid}>UID: {mockUser.uid}</Text>
             </View>
-          <Text style={s.name}>{mockUser.username}</Text>
-          <Text style={s.uid}>UID: {mockUser.uid}</Text>
+          </View>
+          <Pressable
+            style={s.settingsButton}
+            onPress={() => nav.navigate('Settings')}
+            accessibilityRole="button"
+          >
+            <Ionicons name="settings-outline" size={22} color="#1F2A37" />
+          </Pressable>
+        </View>
+
+        <View style={s.statsContainer}>
+          <View style={s.statBlock}>
+            <Text style={s.statLabel}>Plants</Text>
+            <Text style={s.statValue}>{plants.length}</Text>
+          </View>
         </View>
       </View>
 
@@ -158,23 +164,20 @@ export default function ProfileScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F6F9F4' },
 
-  headerWrap: { backgroundColor: 'transparent' },
-  headerBg: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0,
-    height: 150,
-    backgroundColor: '#93C3A0',
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+  header: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    backgroundColor: '#F6F9F4',
   },
-  headerContent: { alignItems: 'center', justifyContent: 'center' },
-  headerTopRow: {
-    width: '100%',
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 32,
-    marginBottom: 10,
+  },
+  profileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
   },
   avatar: {
     width: 86, height: 86, borderRadius: 43,
@@ -189,8 +192,23 @@ const s = StyleSheet.create({
   name: { fontSize: 18, fontWeight: '800', color: '#244332' },
   uid: { color: '#2E6A4C', marginTop: 2, opacity: 0.9 },
 
+  statsContainer: {
+    marginTop: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#DCE9DE',
+    backgroundColor: '#ffffff',
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+  },
+  statBlock: {
+    alignItems: 'flex-start',
+  },
+  statLabel: { fontSize: 12, fontWeight: '600', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.6 },
+  statValue: { fontSize: 24, fontWeight: '800', color: '#244332', marginTop: 6 },
+
   sectionTitle: {
-    marginTop: 10, paddingHorizontal: 16,
+    marginTop: 18, paddingHorizontal: 16,
     fontSize: 16, fontWeight: '800', color: '#335a44',
   },
 
