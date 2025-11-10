@@ -63,7 +63,11 @@ export default function CameraScreen() {
       if (!camRef.current) return;
       const photo = await camRef.current.takePictureAsync({ quality: 1, exif: true });
       if (photo?.uri) {
-        nav.navigate('Preview', { uri: photo.uri, source: 'camera', exif: photo.exif ?? null });
+        nav.navigate('Preview', {
+          uri: photo.uri,
+          source: 'camera',
+          exif: photo.exif ?? null,
+        });
       }
     } catch (e) {
       console.warn('takePicture error:', e);

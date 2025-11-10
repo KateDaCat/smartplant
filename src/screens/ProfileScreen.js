@@ -1,9 +1,9 @@
 // src/screens/ProfileScreen.js
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 // ⬇️ NEW: import mock data from a single place
 import { MOCK_POSTS, mockUser } from '../data/mockPlants';
@@ -29,7 +29,13 @@ export default function ProfileScreen() {
 
   const [plants] = useState(MOCK_POSTS);
   const hasPosts = plants.length > 0;
-  const user = mockUser;
+  const [user, setUser] = useState(() => ({ ...mockUser }));
+
+  useFocusEffect(
+    useCallback(() => {
+      setUser({ ...mockUser });
+    }, [])
+  );
 
   const renderItem = ({ item }) => {
     // Accept either remote URL (string) or local require()

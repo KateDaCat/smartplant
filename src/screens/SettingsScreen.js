@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 import { mockUser } from '../data/mockPlants';
+import * as ImagePicker from 'expo-image-picker';
 
 const SUPPORT_CONTACT = {
   name: 'SmartPlant Support',
@@ -28,6 +29,57 @@ export default function SettingsScreen() {
   const [displayName, setDisplayName] = useState(mockUser.username);
   const [avatarUrl, setAvatarUrl] = useState(mockUser.avatar);
 
+  const requestLibraryPermission = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Allow photo library access to choose a picture.');
+      return false;
+    }
+    return true;
+  };
+
+  const requestCameraPermission = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Allow camera access to take a new photo.');
+      return false;
+    }
+    return true;
+  };
+
+  const handleChoosePhoto = async () => {
+    try {
+      const allowed = await requestLibraryPermission();
+      if (!allowed) return;
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+      if (!result.canceled && result.assets?.length) {
+        setAvatarUrl(result.assets[0].uri);
+      }
+    } catch (err) {
+      console.warn('choose photo error', err);
+      Alert.alert('Error', 'Unable to access your photo library.');
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      const allowed = await requestCameraPermission();
+      if (!allowed) return;
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 1,
+      });
+      if (!result.canceled && result.assets?.length) {
+        setAvatarUrl(result.assets[0].uri);
+      }
+    } catch (err) {
+      console.warn('take photo error', err);
+      Alert.alert('Error', 'Unable to open the camera.');
+    }
+  };
+
   const handleSaveProfile = () => {
     const trimmedName = displayName.trim();
     const trimmedAvatar = avatarUrl.trim();
@@ -36,6 +88,13 @@ export default function SettingsScreen() {
       Alert.alert('Invalid name', 'Please enter a display name.');
       return;
     }
+
+    mockUser.username = trimmedName;
+    if (trimmedAvatar) {
+      mockUser.avatar = trimmedAvatar;
+      setAvatarUrl(trimmedAvatar);
+    }
+    setDisplayName(trimmedName);
 
     Alert.alert('Profile saved', 'Your profile has been updated.');
   };
@@ -66,6 +125,16 @@ export default function SettingsScreen() {
                 source={{ uri: avatarUrl || mockUser.avatar }}
                 style={styles.avatarImage}
               />
+              <View style={styles.avatarButtonRow}>
+                <TouchableOpacity style={styles.avatarActionBtn} onPress={handleTakePhoto}>
+                  <Ionicons name="camera" size={18} color="#0F172A" />
+                  <Text style={styles.avatarActionText}>Take photo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.avatarActionBtn} onPress={handleChoosePhoto}>
+                  <Ionicons name="image" size={18} color="#0F172A" />
+                  <Text style={styles.avatarActionText}>Choose photo</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.field}>
@@ -162,6 +231,25 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#FFFFFF',
     backgroundColor: '#E5E7EB',
+  },
+  avatarButtonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+  },
+  avatarActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: '#EEF5F0',
+  },
+  avatarActionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0F172A',
   },
   field: {
     marginBottom: 18,
