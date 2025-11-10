@@ -11,6 +11,8 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -28,6 +30,7 @@ export default function SettingsScreen() {
 
   const [displayName, setDisplayName] = useState(mockUser.username);
   const [avatarUrl, setAvatarUrl] = useState(mockUser.avatar);
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   const requestLibraryPermission = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -58,6 +61,7 @@ export default function SettingsScreen() {
       if (!result.canceled && result.assets?.length) {
         setAvatarUrl(result.assets[0].uri);
       }
+      setPickerVisible(false);
     } catch (err) {
       console.warn('choose photo error', err);
       Alert.alert('Error', 'Unable to access your photo library.');
@@ -74,6 +78,7 @@ export default function SettingsScreen() {
       if (!result.canceled && result.assets?.length) {
         setAvatarUrl(result.assets[0].uri);
       }
+      setPickerVisible(false);
     } catch (err) {
       console.warn('take photo error', err);
       Alert.alert('Error', 'Unable to open the camera.');
@@ -125,16 +130,13 @@ export default function SettingsScreen() {
                 source={{ uri: avatarUrl || mockUser.avatar }}
                 style={styles.avatarImage}
               />
-              <View style={styles.avatarButtonRow}>
-                <TouchableOpacity style={styles.avatarActionBtn} onPress={handleTakePhoto}>
-                  <Ionicons name="camera" size={18} color="#0F172A" />
-                  <Text style={styles.avatarActionText}>Take photo</Text>
+                <TouchableOpacity
+                  style={styles.avatarCameraButton}
+                  onPress={() => setPickerVisible(true)}
+                  accessibilityRole="button"
+                >
+                  <Ionicons name="camera" size={18} color="#FFFFFF" />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.avatarActionBtn} onPress={handleChoosePhoto}>
-                  <Ionicons name="image" size={18} color="#0F172A" />
-                  <Text style={styles.avatarActionText}>Choose photo</Text>
-                </TouchableOpacity>
-              </View>
             </View>
 
             <View style={styles.field}>
@@ -190,6 +192,43 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={pickerVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPickerVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setPickerVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.sheet}>
+                <Text style={styles.sheetTitle}>Update avatar</Text>
+                <TouchableOpacity
+                  style={styles.sheetAction}
+                  onPress={handleTakePhoto}
+                >
+                  <Ionicons name="camera" size={20} color="#0F172A" />
+                  <Text style={styles.sheetActionText}>Take a photo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.sheetAction}
+                  onPress={handleChoosePhoto}
+                >
+                  <Ionicons name="image" size={20} color="#0F172A" />
+                  <Text style={styles.sheetActionText}>Choose from library</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.sheetCancel}
+                  onPress={() => setPickerVisible(false)}
+                >
+                  <Text style={styles.sheetCancelText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -232,24 +271,13 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
     backgroundColor: '#E5E7EB',
   },
-  avatarButtonRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 12,
-  },
-  avatarActionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: '#EEF5F0',
-  },
-  avatarActionText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#0F172A',
+  avatarCameraButton: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    backgroundColor: '#2F6C4F',
+    borderRadius: 20,
+    padding: 8,
   },
   field: {
     marginBottom: 18,
@@ -325,5 +353,47 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#B91C1C',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    gap: 12,
+  },
+  sheetTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  sheetAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+  },
+  sheetActionText: {
+    fontSize: 15,
+    color: '#0F172A',
+    fontWeight: '600',
+  },
+  sheetCancel: {
+    marginTop: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#E2E8F0',
+  },
+  sheetCancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#334155',
   },
 });
