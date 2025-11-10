@@ -242,9 +242,9 @@ const s = StyleSheet.create({
     borderRadius: 16,
   },
 
-  titleWrap: { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#F7F7F7' },
-  title: { fontSize: 20, fontWeight: '800', color: '#2b2b2b' },
-  subTitle: { marginTop: 4, color: '#5A6B5F' },
+    titleWrap: { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#F7F7F7' },
+    title: { fontSize: 26, fontWeight: 'bold', color: '#2b2b2b' },
+    subTitle: { marginTop: 4, color: '#5A6B5F', fontSize: 16 },
 
   chipsRow: { flexDirection: 'row', gap: 8, marginTop: 10, flexWrap: 'wrap' },
   chip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: '#E7F2EA' },
