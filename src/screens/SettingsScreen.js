@@ -15,7 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-import { useUser } from '../context/UserContext';
+import { getProfile, updateProfile } from '../state/profileStore';
 
 const SUPPORT_CONTACT = {
   name: 'SmartPlant Support',
@@ -24,15 +24,15 @@ const SUPPORT_CONTACT = {
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
-  const { user, updateUser } = useUser();
 
-  const [displayName, setDisplayName] = useState(user.username);
-  const [avatarUrl, setAvatarUrl] = useState(user.avatar);
+  const [displayName, setDisplayName] = useState(() => getProfile().username);
+  const [avatarUrl, setAvatarUrl] = useState(() => getProfile().avatar);
 
   useEffect(() => {
-    setDisplayName(user.username);
-    setAvatarUrl(user.avatar);
-  }, [user]);
+    const profile = getProfile();
+    setDisplayName(profile.username);
+    setAvatarUrl(profile.avatar);
+  }, []);
 
   const handleSaveProfile = () => {
     const trimmedName = displayName.trim();
@@ -43,9 +43,9 @@ export default function SettingsScreen() {
       return;
     }
 
-    updateUser({
+    updateProfile({
       username: trimmedName,
-      avatar: trimmedAvatar || user.avatar,
+      avatar: trimmedAvatar || getProfile().avatar,
     });
     Alert.alert('Profile updated', 'Your profile changes have been saved.');
   };
@@ -73,7 +73,7 @@ export default function SettingsScreen() {
             <Text style={styles.sectionLabel}>Profile</Text>
             <View style={styles.avatarPreview}>
               <Image
-                source={{ uri: avatarUrl || user.avatar }}
+                source={{ uri: avatarUrl || getProfile().avatar }}
                 style={styles.avatarImage}
               />
               <Text style={styles.avatarNote}>Avatar preview</Text>

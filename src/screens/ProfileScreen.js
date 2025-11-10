@@ -1,5 +1,5 @@
 // src/screens/ProfileScreen.js
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 
 // ⬇️ NEW: import mock data from a single place
 import { MOCK_POSTS } from '../data/mockPlants';
-import { useUser } from '../context/UserContext';
+import { getProfile, subscribeProfile } from '../state/profileStore';
 
 function fmt(iso) {
   try {
@@ -27,10 +27,15 @@ function fmt(iso) {
 export default function ProfileScreen() {
   const nav = useNavigation();
   const insets = useSafeAreaInsets();
-  const { user } = useUser();
+  const [user, setUser] = useState(() => getProfile());
 
   const [plants] = useState(MOCK_POSTS);
   const hasPosts = plants.length > 0;
+
+  useEffect(() => {
+    const unsubscribe = subscribeProfile(setUser);
+    return unsubscribe;
+  }, []);
 
   const renderItem = ({ item }) => {
     // Accept either remote URL (string) or local require()
