@@ -53,14 +53,22 @@ export default function ObservationDetailScreen() {
 
   const openMaps = () => {
     if (latitude != null && longitude != null) {
-      nav.navigate(ROOT_TABS, {
-        screen: 'Heatmap',
-        params: {
-          focusLatitude: latitude,
-          focusLongitude: longitude,
-          focusLocationName: locationName || null,
-        },
-      });
+      const params = {
+        focusLatitude: latitude,
+        focusLongitude: longitude,
+        focusLocationName: locationName || null,
+      };
+
+      const parent = nav.getParent();
+
+      if (parent?.navigate) {
+        parent.navigate(ROOT_TABS, {
+          screen: 'Heatmap',
+          params,
+        });
+      } else {
+        nav.navigate('Heatmap', params);
+      }
     }
   };
 
