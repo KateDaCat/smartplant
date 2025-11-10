@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    paddingBottom: Platform.OS === 'ios' ? 16 : 10,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 20,
     paddingTop: Platform.OS === 'ios' ? 8 : 6,
   },
   tabItem: {
