@@ -66,7 +66,7 @@ export default function ProfileScreen() {
               {item.speciesName || item.commonName || 'Unknown species'}
             </Text>
             <Text style={s.cardSub}>
-              {item.isEndangered ? 'Endangered species' : item.locationName || 'Unlisted location'}
+              {item.locationName ? item.locationName : 'Location not recorded'}
             </Text>
             <Text style={s.cardMeta}>{fmt(item.createdAt)}</Text>
           </View>

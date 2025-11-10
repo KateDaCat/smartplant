@@ -128,7 +128,9 @@ export default function SearchScreen() {
             {item.speciesName || item.commonName || 'Unknown species'}
           </Text>
           <Text style={s.cardSub}>
-            {item.isEndangered ? 'Location: Hidden' : `Location: ${item.locationName || 'Unknown'}`}
+            {item.isEndangered
+              ? 'Location hidden to protect species'
+              : `Location: ${item.locationName || 'Unknown'}`}
           </Text>
           <Text style={s.cardMeta}>{formatDate(item.createdAt)}</Text>
         </View>
