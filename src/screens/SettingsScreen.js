@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -15,7 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-import { getProfile, updateProfile } from '../state/profileStore';
+import { mockUser } from '../data/mockPlants';
 
 const SUPPORT_CONTACT = {
   name: 'SmartPlant Support',
@@ -25,14 +25,8 @@ const SUPPORT_CONTACT = {
 export default function SettingsScreen() {
   const navigation = useNavigation();
 
-  const [displayName, setDisplayName] = useState(() => getProfile().username);
-  const [avatarUrl, setAvatarUrl] = useState(() => getProfile().avatar);
-
-  useEffect(() => {
-    const profile = getProfile();
-    setDisplayName(profile.username);
-    setAvatarUrl(profile.avatar);
-  }, []);
+  const [displayName, setDisplayName] = useState(mockUser.username);
+  const [avatarUrl, setAvatarUrl] = useState(mockUser.avatar);
 
   const handleSaveProfile = () => {
     const trimmedName = displayName.trim();
@@ -43,11 +37,10 @@ export default function SettingsScreen() {
       return;
     }
 
-    updateProfile({
-      username: trimmedName,
-      avatar: trimmedAvatar || getProfile().avatar,
-    });
-    Alert.alert('Profile updated', 'Your profile changes have been saved.');
+    Alert.alert(
+      'Mock save',
+      'Profile updates are saved locally for this session. Connect to a backend to persist them.'
+    );
   };
 
   const handleLogout = () => {
@@ -73,7 +66,7 @@ export default function SettingsScreen() {
             <Text style={styles.sectionLabel}>Profile</Text>
             <View style={styles.avatarPreview}>
               <Image
-                source={{ uri: avatarUrl || getProfile().avatar }}
+                source={{ uri: avatarUrl || mockUser.avatar }}
                 style={styles.avatarImage}
               />
               <Text style={styles.avatarNote}>Avatar preview</Text>

@@ -6,8 +6,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native';
 
 // ⬇️ NEW: import mock data from a single place
-import { MOCK_POSTS } from '../data/mockPlants';
-import { getProfile, subscribeProfile } from '../state/profileStore';
+import { MOCK_POSTS, mockUser } from '../data/mockPlants';
 
 function fmt(iso) {
   try {
@@ -27,15 +26,10 @@ function fmt(iso) {
 export default function ProfileScreen() {
   const nav = useNavigation();
   const insets = useSafeAreaInsets();
-  const [user, setUser] = useState(() => getProfile());
 
   const [plants] = useState(MOCK_POSTS);
   const hasPosts = plants.length > 0;
-
-  useEffect(() => {
-    const unsubscribe = subscribeProfile(setUser);
-    return unsubscribe;
-  }, []);
+  const user = mockUser;
 
   const renderItem = ({ item }) => {
     // Accept either remote URL (string) or local require()
