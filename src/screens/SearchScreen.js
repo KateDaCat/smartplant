@@ -7,8 +7,9 @@ import {
   Image,
   Pressable,
   StyleSheet,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
-import {Picker} from '@react-native-picker/picker';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 
@@ -48,6 +49,7 @@ export default function SearchScreen() {
   const [sourceFilter, setSourceFilter] = useState('all');
   const [minConfidence, setMinConfidence] = useState(0);
   const [sort, setSort] = useState('newest');
+  const [sortMenuVisible, setSortMenuVisible] = useState(false);
 
   const results = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -227,20 +229,16 @@ export default function SearchScreen() {
             <View style={s.filterGroup}>
               <Text style={s.filterLabel}>Sort by</Text>
               <View style={s.pickerWrap}>
-                <Picker
-                  selectedValue={sort}
-                  onValueChange={value => setSort(value)}
-                  style={s.picker}
-                  dropdownIconColor="#2F6C4F"
+                <Pressable
+                  style={s.pickerButton}
+                  onPress={() => setSortMenuVisible(true)}
+                  android_ripple={{color: '#00000014'}}
                 >
-                  {SORT_OPTIONS.map(option => (
-                    <Picker.Item
-                      key={option.key}
-                      label={option.label}
-                      value={option.key}
-                    />
-                  ))}
-                </Picker>
+                  <Text style={s.pickerButtonText}>
+                    {SORT_OPTIONS.find(o => o.key === sort)?.label ?? 'Select'}
+                  </Text>
+                  <Text style={s.pickerButtonChevron}>▼</Text>
+                </Pressable>
               </View>
             </View>
 
@@ -263,6 +261,45 @@ export default function SearchScreen() {
         }
         keyboardShouldPersistTaps="handled"
       />
+      <Modal
+        visible={sortMenuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSortMenuVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setSortMenuVisible(false)}>
+          <View style={s.sortModalBackdrop}>
+            <TouchableWithoutFeedback>
+              <View style={s.sortModal}>
+                <Text style={s.sortModalTitle}>Sort results by</Text>
+                {SORT_OPTIONS.map(option => {
+                  const active = sort === option.key;
+                  return (
+                    <Pressable
+                      key={option.key}
+                      style={[s.sortModalItem, active && s.sortModalItemActive]}
+                      onPress={() => {
+                        setSort(option.key);
+                        setSortMenuVisible(false);
+                      }}
+                      android_ripple={{color: '#00000010'}}
+                    >
+                      <Text
+                        style={[
+                          s.sortModalItemText,
+                          active && s.sortModalItemTextActive,
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -334,10 +371,15 @@ const s = StyleSheet.create({
     borderColor: '#D3E6DB',
     overflow: 'hidden',
   },
-  picker: {
+  pickerButton: {
     height: 46,
-    color: '#1F2937',
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
+  pickerButtonText: {color: '#1F2937', fontWeight: '700'},
+  pickerButtonChevron: {color: '#2F6C4F', fontSize: 12},
   card: {
     flexDirection: 'row',
     marginHorizontal: 16,
@@ -373,4 +415,39 @@ const s = StyleSheet.create({
   },
   emptyTitle: {fontSize: 16, fontWeight: '800', color: '#1F2937'},
   emptySubtitle: {fontSize: 13, color: '#6B7280', textAlign: 'center'},
+  sortModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  sortModal: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    gap: 6,
+  },
+  sortModalTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#475569',
+    marginBottom: 8,
+  },
+  sortModalItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  sortModalItemActive: {
+    backgroundColor: '#E4F1EA',
+  },
+  sortModalItemText: {
+    fontSize: 14,
+    color: '#1F2937',
+    fontWeight: '600',
+  },
+  sortModalItemTextActive: {
+    color: '#2F6C4F',
+  },
 });
