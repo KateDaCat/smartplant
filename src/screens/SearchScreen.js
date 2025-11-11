@@ -403,7 +403,7 @@ const s = StyleSheet.create({
   imageWrap: {backgroundColor: '#CBD5F5'},
   postImage: {
     width: '100%',
-    height: 320,
+    aspectRatio: 1,
   },
   postBody: {
     paddingHorizontal: 16,

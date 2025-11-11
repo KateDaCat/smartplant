@@ -210,7 +210,7 @@ const s = StyleSheet.create({
   },
   postImage: {
     width: '100%',
-    height: 320,
+    aspectRatio: 1,
   },
   postBody: {
     paddingHorizontal: 16,
