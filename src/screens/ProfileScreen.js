@@ -60,6 +60,10 @@ export default function ProfileScreen() {
         source: item.source,
       });
 
+    const initials = (item.uploadedBy || user.username || '?')
+      .slice(0, 2)
+      .toUpperCase();
+
     return (
       <View style={s.post}>
         <Pressable
@@ -71,6 +75,12 @@ export default function ProfileScreen() {
         </Pressable>
 
         <View style={s.postBody}>
+          <View style={s.postBadgeRow}>
+            <View style={s.userBadge}>
+              <Text style={s.userBadgeText}>{initials}</Text>
+            </View>
+            <Text style={s.username}>{item.uploadedBy || user.username}</Text>
+          </View>
           <View style={s.postBodyHeader}>
             <Text numberOfLines={2} style={s.postTitle}>
               {item.speciesName || item.commonName || 'Unknown species'}
@@ -216,9 +226,24 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 18,
-    gap: 8,
+    gap: 10,
     backgroundColor: '#FFFFFF',
   },
+  postBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  userBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#D8E9DF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  userBadgeText: { fontSize: 15, fontWeight: '700', color: '#24543B' },
+  username: { fontSize: 15, fontWeight: '700', color: '#1F2A37' },
   postBodyHeader: {
     flexDirection: 'row',
     alignItems: 'center',
