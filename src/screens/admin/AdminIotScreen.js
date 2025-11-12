@@ -549,6 +549,9 @@ const styles = StyleSheet.create({
       fontSize: 12,
       fontWeight: '600',
     },
+  listContent: {
+    paddingBottom: 32,
+  },
   emptyState: {
     paddingVertical: 18,
     paddingHorizontal: 16,

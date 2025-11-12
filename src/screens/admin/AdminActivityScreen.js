@@ -12,75 +12,105 @@ import { Ionicons } from '@expo/vector-icons';
 
 const MOCK_ACTIVITY = [
   {
+    id: 'act_010',
+    actor: 'Sherlyn Lau',
+    type: 'user_assign_role',
+    target: 'reza.rashid@example.com',
+    meta: { role: 'Field Ranger' },
+    createdAt: '2025-11-10T10:32:00Z',
+  },
+  {
+    id: 'act_009',
+    actor: 'Admin Lee',
+    type: 'heatmap_mask',
+    target: 'DEV-905',
+    meta: { locationName: 'Trailside', plantName: 'Nepenthes rafflesiana' },
+    createdAt: '2025-11-10T10:20:00Z',
+  },
+  {
+    id: 'act_008b',
+    actor: 'Admin Lee',
+    type: 'heatmap_unmask',
+    target: 'DEV-905',
+    meta: { locationName: 'Trailside', plantName: 'Nepenthes rafflesiana' },
+    createdAt: '2025-11-10T10:18:00Z',
+  },
+  {
     id: 'act_008',
     actor: 'Sherlyn Lau',
     type: 'device_add',
-    action: 'added device',
-    target: 'DEV-909 · Forest Edge Sensor',
-    comment: 'Created for new observation zone at Jerantut reserve.',
+    target: 'DEV-909',
+    meta: { deviceId: 'DEV-909', plantName: 'Forest Edge Sensor' },
     createdAt: '2025-11-10T10:15:00Z',
   },
   {
     id: 'act_007',
     actor: 'Ranger Amir',
     type: 'alert_resolve',
-    action: 'resolved alert',
-    target: 'DEV-512B · Bog Microclimate Station',
-    comment: 'Humidity stabilised after on-site valve adjustment.',
+    target: 'DEV-512B',
+    meta: { deviceId: 'DEV-512B', plantName: 'Bog Microclimate Station' },
     createdAt: '2025-11-10T09:52:00Z',
   },
   {
     id: 'act_006',
     actor: 'Admin Lee',
     type: 'user_deactivate',
-    action: 'deactivated user',
     target: 'kelly.then@example.com',
-    comment: 'Account suspended after duplicate upload review.',
     createdAt: '2025-11-10T09:20:00Z',
+  },
+  {
+    id: 'act_005b',
+    actor: 'Admin Lee',
+    type: 'flag_approve',
+    target: 'Flagged observation',
+    meta: { plantName: 'Rafflesia arnoldii' },
+    createdAt: '2025-11-10T08:42:00Z',
+  },
+  {
+    id: 'act_005a',
+    actor: 'Ranger Amir',
+    type: 'flag_identify',
+    target: 'Observation obs_223',
+    meta: { plantName: 'Nepenthes rafflesiana', aiGuess: 'Nepenthes rafflesiana' },
+    createdAt: '2025-11-10T08:18:00Z',
   },
   {
     id: 'act_005',
     actor: 'Sherlyn Lau',
     type: 'device_update',
-    action: 'updated device profile',
-    target: 'DEV-001 · Soil Monitor A1',
-    comment: 'Adjusted safe soil moisture threshold to 28%.',
+    target: 'DEV-001',
+    meta: { deviceId: 'DEV-001' },
     createdAt: '2025-11-10T08:05:00Z',
   },
   {
     id: 'act_004',
     actor: 'Ranger Amir',
     type: 'alert_resolve',
-    action: 'resolved alert',
-    target: 'DEV-409A · Rainforest Edge Camera',
-    comment: 'Cleared false motion detection after maintenance check.',
+    target: 'DEV-409A',
+    meta: { deviceId: 'DEV-409A', plantName: 'Rainforest Edge Camera' },
     createdAt: '2025-11-09T19:40:00Z',
   },
   {
     id: 'act_003',
     actor: 'Admin Lee',
     type: 'user_activate',
-    action: 'reactivated user',
     target: 'bianca.doe@example.com',
-    comment: 'Re-activated following manual verification.',
     createdAt: '2025-11-09T17:18:00Z',
   },
   {
     id: 'act_002',
     actor: 'Sherlyn Lau',
     type: 'device_add',
-    action: 'added device',
-    target: 'DEV-905 · Canopy Thermal Sensor',
-    comment: 'Requested by Kuala Penyu field crew.',
+    target: 'DEV-905',
+    meta: { deviceId: 'DEV-905', plantName: 'Canopy Thermal Sensor' },
     createdAt: '2025-11-09T13:32:00Z',
   },
   {
     id: 'act_001',
     actor: 'Admin Lee',
     type: 'device_update',
-    action: 'edited device metadata',
-    target: 'DEV-014 · Weather Station B3',
-    comment: 'Updated location details after GPS recalibration.',
+    target: 'DEV-014',
+    meta: { deviceId: 'DEV-014' },
     createdAt: '2025-11-09T10:05:00Z',
   },
 ];
@@ -125,16 +155,52 @@ const typeToCategory = type => {
     case 'device_update':
       return 'device';
     case 'alert_resolve':
+    case 'heatmap_mask':
+    case 'heatmap_unmask':
+    case 'flag_identify':
+    case 'flag_approve':
       return 'alerts';
     case 'user_activate':
     case 'user_deactivate':
+    case 'user_assign_role':
       return 'users';
     default:
       return 'all';
   }
 };
 
+const ACTIVITY_TEMPLATES = {
+  user_activate: entry => `${entry.actor} reactivated user ${entry.target}.`,
+  user_deactivate: entry => `${entry.actor} deactivated user ${entry.target}.`,
+  user_assign_role: entry =>
+    `${entry.actor} assigned ${entry.meta?.role ?? 'a new role'} to ${entry.target}.`,
+  flag_identify: entry =>
+    `${entry.actor} identified plant ${entry.meta?.plantName ?? entry.target}, AI suggested ${entry.meta?.aiGuess ?? 'a match'}.`,
+  flag_approve: entry =>
+    `${entry.actor} approved plant ${entry.meta?.plantName ?? entry.target}.`,
+  heatmap_mask: entry =>
+    `${entry.actor} masked location ${entry.meta?.locationName ?? 'Unknown'} for ${entry.meta?.plantName ?? entry.target}.`,
+  heatmap_unmask: entry =>
+    `${entry.actor} unmasked location ${entry.meta?.locationName ?? 'Unknown'} for ${entry.meta?.plantName ?? entry.target}.`,
+  device_add: entry =>
+    `${entry.actor} added device ${entry.meta?.deviceId ?? entry.target} for ${entry.meta?.plantName ?? 'a plant'}.`,
+  device_update: entry =>
+    `${entry.actor} updated device ${entry.meta?.deviceId ?? entry.target}.`,
+  alert_resolve: entry =>
+    `${entry.actor} resolved IoT alerts for ${entry.meta?.deviceId ?? entry.target}.`,
+};
+
+const buildActivityMessage = entry => {
+  const template = ACTIVITY_TEMPLATES[entry.type];
+  if (template) return template(entry);
+  if (entry.action && entry.target) return `${entry.actor} ${entry.action} ${entry.target}.`;
+  if (entry.comment) return `${entry.actor}: ${entry.comment}`;
+  return entry.actor ? `${entry.actor} recorded an activity.` : 'Activity recorded.';
+};
+
 function ActivityItem({ entry }) {
+  const message = buildActivityMessage(entry);
+
   return (
     <View style={styles.activityCard}>
       <View style={styles.activityBody}>
@@ -142,12 +208,7 @@ function ActivityItem({ entry }) {
           <Text style={styles.activityActor}>{entry.actor}</Text>
           <Text style={styles.activityTime}>{formatRelativeTime(entry.createdAt)}</Text>
         </View>
-        <Text style={styles.activitySentence}>
-          {entry.actor
-            ? `${entry.actor.split(' ')[0]} ${entry.action}`
-            : entry.action}{' '}
-          <Text style={styles.activityTarget}>{entry.target}</Text>
-        </Text>
+        <Text style={styles.activitySentence}>{message}</Text>
       </View>
     </View>
   );
