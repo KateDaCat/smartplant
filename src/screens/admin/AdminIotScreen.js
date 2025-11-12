@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -10,68 +10,14 @@ import {
   Modal,
   Pressable,
   ScrollView,
+  RefreshControl,
+  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { ADMIN_IOT_DETAIL } from '../../navigation/routes';
-
-const MOCK_IOT_DEVICES = [
-  {
-    device_id: 'DEV-001',
-    device_name: 'Soil Monitor A1',
-    species: 'Rafflesia arnoldii',
-    location: {
-      name: 'Bako National Park',
-      latitude: 1.4667,
-      longitude: 110.3333,
-    },
-    readings: {
-      temperature: 28.4,
-      humidity: 78,
-      soil_moisture: 42,
-      motion_detected: false,
-    },
-    last_updated: '2025-10-21T12:45:00Z',
-    alerts: [],
-  },
-  {
-    device_id: 'DEV-014',
-    device_name: 'Weather Station B3',
-    species: 'Nepenthes rajah',
-    location: {
-      name: 'Santubong Forest Reserve',
-      latitude: 1.595,
-      longitude: 110.345,
-    },
-    readings: {
-      temperature: 24.9,
-      humidity: 91,
-      soil_moisture: 65,
-      motion_detected: true,
-    },
-    last_updated: '2025-10-21T12:41:00Z',
-    alerts: ['Humidity', 'Motion'],
-  },
-  {
-    device_id: 'DEV-020',
-    device_name: 'Trail Camera C2',
-    species: 'Dipterocarpus sarawakensis',
-    location: {
-      name: 'Lambir Hills',
-      latitude: 1.285,
-      longitude: 110.523,
-    },
-    readings: {
-      temperature: 26.8,
-      humidity: 84,
-      soil_moisture: 55,
-      motion_detected: false,
-    },
-    last_updated: '2025-10-21T12:36:00Z',
-    alerts: ['Soil Moisture'],
-  },
-];
+import { fetchAllDeviceData, resolveAlertsForDevice } from '../../../services/api';
 
 export default function AdminIotScreen() {
   const navigation = useNavigation();
@@ -85,6 +31,48 @@ export default function AdminIotScreen() {
     longitude: '',
     locationName: '',
   }));
+  const [iotDevices, setIotDevices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadData = async () => {
+    try {
+      setError(null);
+      const deviceData = await fetchAllDeviceData();
+      setIotDevices(deviceData || []);
+    } catch (err) {
+      console.error('Failed to load data:', err);
+      setError('Failed to load dashboard data');
+    }
+  };
+
+  useEffect(() => {
+    const initialLoad = async () => {
+      setLoading(true);
+      await loadData();
+      setLoading(false);
+    };
+    initialLoad();
+
+    const intervalId = setInterval(loadData, 30000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  const handleResolveDeviceAlerts = async deviceId => {
+    try {
+      await resolveAlertsForDevice(deviceId);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to resolve alert:', err);
+    }
+  };
 
   const resetForm = () =>
     setNewDeviceForm({
@@ -128,84 +116,99 @@ export default function AdminIotScreen() {
     );
   };
 
-  const filteredDevices = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const filteredDevices = useMemo(() => {
+      const normalizedQuery = searchQuery.trim().toLowerCase();
+      const list = Array.isArray(iotDevices) ? [...iotDevices] : [];
 
-    return MOCK_IOT_DEVICES.slice()
-      .filter((device) => {
-        if (!normalizedQuery) return true;
-        const haystack = [
-          device.device_name,
-          device.device_id,
-          device.species,
-          device.location?.name,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase();
-        return haystack.includes(normalizedQuery);
-      })
-      .sort((a, b) => a.device_name.localeCompare(b.device_name));
-  }, [searchQuery]);
+      return list
+        .filter(device => {
+          if (!normalizedQuery) return true;
+          const haystack = [
+            device.device_name,
+            device.device_id,
+            device.species_name,
+            device.species,
+            device.location?.name,
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+          return haystack.includes(normalizedQuery);
+        })
+        .sort((a, b) => (a.device_name || '').localeCompare(b.device_name || ''));
+    }, [searchQuery, iotDevices]);
 
   const alertDevices = useMemo(
-      () => filteredDevices.filter((device) => device.alerts && device.alerts.length > 0),
-      [filteredDevices]
-    );
+    () =>
+      filteredDevices.filter(device => {
+        if (!device) return false;
+        return Array.isArray(device.alerts) ? device.alerts.length > 0 : Boolean(device.alerts);
+      }),
+    [filteredDevices],
+  );
   const normalDevices = useMemo(
-      () => filteredDevices.filter((device) => !device.alerts || device.alerts.length === 0),
-      [filteredDevices]
-    );
+    () =>
+      filteredDevices.filter(device => {
+        if (!device) return false;
+        return Array.isArray(device.alerts) ? device.alerts.length === 0 : !device.alerts;
+      }),
+    [filteredDevices],
+  );
   const noMatches = filteredDevices.length === 0;
 
-    const handleResolveAlerts = device => {
-      Alert.alert(
-        'Resolve alerts',
-        `Mark alerts for ${device.device_name || device.device_id} as resolved?`,
-        [
-          {text: 'Cancel', style: 'cancel'},
-          {
-            text: 'Confirm',
-            style: 'default',
-            onPress: () => {
-              Alert.alert('Alerts resolved', 'Device alerts will be cleared once backend is ready.');
-            },
-          },
-        ],
-        {cancelable: true},
-      );
-    };
+  const renderDeviceRow = (item, isAlert = false) => {
+    const speciesLabel = item.species_name || item.species || 'N/A';
+    const locationLabel =
+      item.location?.name || item.location_name || item.region || 'Unknown location';
+    const alertsText = Array.isArray(item.alerts)
+      ? item.alerts.join(', ')
+      : item.alerts || '—';
+    const resolveId = item.device_id_raw ?? item.device_id;
 
-    const renderDeviceRow = (item, isAlert = false) => (
-    <View style={[styles.row, isAlert && styles.alertRow]}
-      key={item.device_id}
-    >
-      <View style={styles.cellWide}>
-        <Text style={[styles.plantText, isAlert && styles.alertPlantText]}>{item.species}</Text>
-        <Text style={[styles.metaText, isAlert && styles.alertMetaText]}>{item.location.name}</Text>
-        {isAlert && (
-          <Text style={styles.alertDetailText}>Alerts: {item.alerts.join(', ')}</Text>
-        )}
-      </View>
-      <Text style={[styles.cell, isAlert && styles.alertCellText]}>{item.device_id}</Text>
-      <View style={styles.cellAction}>
+    return (
+      <View style={[styles.row, isAlert && styles.alertRow]} key={item.device_id}>
+        <View style={styles.cellWide}>
+          <Text style={[styles.plantText, isAlert && styles.alertPlantText]}>{speciesLabel}</Text>
+          <Text style={[styles.metaText, isAlert && styles.alertMetaText]}>{locationLabel}</Text>
+          {isAlert && <Text style={styles.alertDetailText}>Alerts: {alertsText}</Text>}
+        </View>
+        <Text style={[styles.cell, isAlert && styles.alertCellText]}>{item.device_id}</Text>
+        <View style={styles.cellAction}>
           {isAlert && (
             <TouchableOpacity
               style={styles.resolveButton}
-              onPress={() => handleResolveAlerts(item)}
+              onPress={() => handleResolveDeviceAlerts(resolveId)}
             >
               <Text style={styles.resolveButtonText}>Resolve</Text>
             </TouchableOpacity>
           )}
-        <TouchableOpacity
-          style={styles.viewButton}
-          onPress={() => navigation.navigate(ADMIN_IOT_DETAIL, { device: item })}
-        >
-          <Text style={styles.viewText}>View</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.viewButton}
+            onPress={() => navigation.navigate(ADMIN_IOT_DETAIL, { device: item })}
+          >
+            <Text style={styles.viewText}>View</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="#1E88E5" />
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -240,37 +243,58 @@ export default function AdminIotScreen() {
         </TouchableOpacity>
       </View>
 
+      <ScrollView
+        style={styles.listContainer}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#1E88E5']}
+            tintColor="#1E88E5"
+          />
+        }
+      >
         {noMatches ? (
           <View style={[styles.table, styles.emptyCard]}>
             <Ionicons name="hardware-chip-outline" size={24} color="#94A3B8" />
             <Text style={styles.emptyCardTitle}>No devices found</Text>
-            <Text style={styles.emptyCardSubtitle}>Try a different search term or clear the filter.</Text>
+            <Text style={styles.emptyCardSubtitle}>
+              Try a different search term or clear the filter.
+            </Text>
           </View>
         ) : (
-          <>
+          <View style={styles.sectionStack}>
             {alertDevices.length > 0 && (
-              <View style={[styles.table, styles.alertTable]}>
+              <View style={[styles.table, styles.alertTable, styles.sectionItem]}>
                 <View style={[styles.row, styles.headerRow, styles.alertHeaderRow]}>
-                  <Text style={[styles.cellWide, styles.headerText, styles.alertHeaderText]}>Plant</Text>
-                  <Text style={[styles.cell, styles.headerText, styles.alertHeaderText]}>Device ID</Text>
-            <Text style={[styles.cellActionHeader, styles.headerText, styles.alertHeaderText]}>Action</Text>
+                  <Text style={[styles.cellWide, styles.headerText, styles.alertHeaderText]}>
+                    Plant
+                  </Text>
+                  <Text style={[styles.cell, styles.headerText, styles.alertHeaderText]}>
+                    Device ID
+                  </Text>
+                  <Text style={[styles.cellActionHeader, styles.headerText, styles.alertHeaderText]}>
+                    Action
+                  </Text>
                 </View>
-                {alertDevices.map((item) => renderDeviceRow(item, true))}
+                {alertDevices.map(item => renderDeviceRow(item, true))}
               </View>
             )}
 
-            <View style={styles.table}>
+            <View style={[styles.table, alertDevices.length > 0 && styles.tableSpacing]}>
               <View style={[styles.row, styles.headerRow]}>
                 <Text style={[styles.cellWide, styles.headerText]}>Plant</Text>
                 <Text style={[styles.cell, styles.headerText]}>Device ID</Text>
-                  <Text style={[styles.cellActionHeader, styles.headerText]}>Action</Text>
+                <Text style={[styles.cellActionHeader, styles.headerText]}>Action</Text>
               </View>
 
               <FlatList
                 data={normalDevices}
-                keyExtractor={(item) => item.device_id}
+                keyExtractor={item => item.device_id}
                 ItemSeparatorComponent={() => <View style={styles.separator} />}
                 renderItem={({ item }) => renderDeviceRow(item)}
+                scrollEnabled={false}
                 ListEmptyComponent={() => (
                   <View style={styles.emptyState}>
                     <Text style={styles.emptyStateText}>
@@ -282,8 +306,9 @@ export default function AdminIotScreen() {
                 )}
               />
             </View>
-          </>
+          </View>
         )}
+      </ScrollView>
 
       <Modal
         transparent
@@ -393,6 +418,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F6F9F4',
     padding: 20,
+  },
+  listContainer: {
+    flex: 1,
+  },
+  listContent: {
+    paddingBottom: 32,
+  },
+  sectionStack: {
+    flexDirection: 'column',
+  },
+  sectionItem: {
+    marginBottom: 16,
+  },
+  tableSpacing: {
+    marginTop: 16,
   },
   headerTitle: {
     fontSize: 24,
