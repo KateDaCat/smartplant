@@ -75,14 +75,6 @@ const MOCK_ACTIVITY = [
     createdAt: '2025-11-10T08:18:00Z',
   },
   {
-    id: 'act_005',
-    actor: 'Sherlyn Lau',
-    type: 'device_update',
-    target: 'DEV-001',
-    meta: { deviceId: 'DEV-001' },
-    createdAt: '2025-11-10T08:05:00Z',
-  },
-  {
     id: 'act_004',
     actor: 'Ranger Amir',
     type: 'alert_resolve',
@@ -104,14 +96,6 @@ const MOCK_ACTIVITY = [
     target: 'DEV-905',
     meta: { deviceId: 'DEV-905', plantName: 'Canopy Thermal Sensor' },
     createdAt: '2025-11-09T13:32:00Z',
-  },
-  {
-    id: 'act_001',
-    actor: 'Admin Lee',
-    type: 'device_update',
-    target: 'DEV-014',
-    meta: { deviceId: 'DEV-014' },
-    createdAt: '2025-11-09T10:05:00Z',
   },
 ];
 
@@ -144,8 +128,8 @@ function formatRelativeTime(iso) {
 
 const FILTER_TABS = [
   { key: 'all', label: 'All' },
-  { key: 'device', label: 'Devices' },
-  { key: 'alerts', label: 'Alerts' },
+  { key: 'iot', label: 'IoT' },
+  { key: 'flagged', label: 'Flagged' },
   { key: 'heatmap', label: 'Heatmap' },
   { key: 'users', label: 'Users' },
 ];
@@ -154,11 +138,11 @@ const typeToCategory = type => {
   switch (type) {
     case 'device_add':
     case 'device_update':
-      return 'device';
     case 'alert_resolve':
+      return 'iot';
     case 'flag_identify':
     case 'flag_approve':
-      return 'alerts';
+      return 'flagged';
     case 'heatmap_mask':
     case 'heatmap_unmask':
       return 'heatmap';
@@ -186,8 +170,6 @@ const ACTIVITY_TEMPLATES = {
     `${entry.actor} unmasked location ${entry.meta?.locationName ?? 'Unknown'} for ${entry.meta?.plantName ?? entry.target}.`,
   device_add: entry =>
     `${entry.actor} added device ${entry.meta?.deviceId ?? entry.target} for ${entry.meta?.plantName ?? 'a plant'}.`,
-  device_update: entry =>
-    `${entry.actor} updated device ${entry.meta?.deviceId ?? entry.target}.`,
   alert_resolve: entry =>
     `${entry.actor} resolved IoT alerts for ${entry.meta?.deviceId ?? entry.target}.`,
 };
