@@ -146,6 +146,7 @@ const FILTER_TABS = [
   { key: 'all', label: 'All' },
   { key: 'device', label: 'Devices' },
   { key: 'alerts', label: 'Alerts' },
+  { key: 'heatmap', label: 'Heatmap' },
   { key: 'users', label: 'Users' },
 ];
 
@@ -155,11 +156,12 @@ const typeToCategory = type => {
     case 'device_update':
       return 'device';
     case 'alert_resolve':
-    case 'heatmap_mask':
-    case 'heatmap_unmask':
     case 'flag_identify':
     case 'flag_approve':
       return 'alerts';
+    case 'heatmap_mask':
+    case 'heatmap_unmask':
+      return 'heatmap';
     case 'user_activate':
     case 'user_deactivate':
     case 'user_assign_role':
