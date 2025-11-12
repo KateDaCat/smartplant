@@ -158,7 +158,25 @@ export default function AdminIotScreen() {
     );
   const noMatches = filteredDevices.length === 0;
 
-  const renderDeviceRow = (item, isAlert = false) => (
+    const handleResolveAlerts = device => {
+      Alert.alert(
+        'Resolve alerts',
+        `Mark alerts for ${device.device_name || device.device_id} as resolved?`,
+        [
+          {text: 'Cancel', style: 'cancel'},
+          {
+            text: 'Confirm',
+            style: 'default',
+            onPress: () => {
+              Alert.alert('Alerts resolved', 'Device alerts will be cleared once backend is ready.');
+            },
+          },
+        ],
+        {cancelable: true},
+      );
+    };
+
+    const renderDeviceRow = (item, isAlert = false) => (
     <View style={[styles.row, isAlert && styles.alertRow]}
       key={item.device_id}
     >
@@ -171,6 +189,14 @@ export default function AdminIotScreen() {
       </View>
       <Text style={[styles.cell, isAlert && styles.alertCellText]}>{item.device_id}</Text>
       <View style={styles.cellAction}>
+          {isAlert && (
+            <TouchableOpacity
+              style={styles.resolveButton}
+              onPress={() => handleResolveAlerts(item)}
+            >
+              <Text style={styles.resolveButtonText}>Resolve</Text>
+            </TouchableOpacity>
+          )}
         <TouchableOpacity
           style={styles.viewButton}
           onPress={() => navigation.navigate(ADMIN_IOT_DETAIL, { device: item })}
@@ -409,10 +435,13 @@ const styles = StyleSheet.create({
   cellWide: {
     flex: 1.6,
   },
-  cellAction: {
-    width: 120,
-    alignItems: 'flex-end',
-  },
+    cellAction: {
+      width: 140,
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      gap: 8,
+    },
   headerText: {
     fontWeight: '700',
     color: '#0F172A',
@@ -463,6 +492,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
+    resolveButton: {
+      backgroundColor: '#D1FAE5',
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 12,
+    },
+    resolveButtonText: {
+      color: '#065F46',
+      fontSize: 12,
+      fontWeight: '600',
+    },
   emptyState: {
     paddingVertical: 18,
     paddingHorizontal: 16,
