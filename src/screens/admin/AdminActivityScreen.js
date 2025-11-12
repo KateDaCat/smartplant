@@ -10,39 +10,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const TYPE_META = {
-  device_add: {
-    icon: 'hardware-chip-outline',
-    tint: '#2563EB',
-    bg: '#DBEAFE',
-  },
-  device_update: {
-    icon: 'construct-outline',
-    tint: '#7C3AED',
-    bg: '#EDE9FE',
-  },
-  alert_resolve: {
-    icon: 'checkmark-done-outline',
-    tint: '#059669',
-    bg: '#DCFCE7',
-  },
-  user_deactivate: {
-    icon: 'person-remove-outline',
-    tint: '#DC2626',
-    bg: '#FEE2E2',
-  },
-  user_activate: {
-    icon: 'person-add-outline',
-    tint: '#0EA5E9',
-    bg: '#E0F2FE',
-  },
-  default: {
-    icon: 'information-circle-outline',
-    tint: '#334155',
-    bg: '#E2E8F0',
-  },
-};
-
 const MOCK_ACTIVITY = [
   {
     id: 'act_008',
@@ -168,10 +135,9 @@ const typeToCategory = type => {
 };
 
 function ActivityItem({ entry }) {
-  const meta = TYPE_META[entry.type] ?? TYPE_META.default;
   return (
-      <View style={styles.activityCard}>
-        <View style={styles.activityBody}>
+    <View style={styles.activityCard}>
+      <View style={styles.activityBody}>
         <View style={styles.activityHeader}>
           <Text style={styles.activityActor}>{entry.actor}</Text>
           <Text style={styles.activityTime}>{formatRelativeTime(entry.createdAt)}</Text>
