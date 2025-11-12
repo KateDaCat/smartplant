@@ -1,9 +1,10 @@
 // src/screens/PreviewScreen.js
-import React from 'react';
-import { View, Image, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Image, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { MOCK_IDENTIFY_RESULT } from '../data/mockPlants';
+import ScannerOverlay from './components/ScannerOverlay';
 
 const LOW_CONFIDENCE_THRESHOLD = 60;
 
@@ -11,6 +12,7 @@ export default function PreviewScreen() {
   const nav = useNavigation();
   const route = useRoute();
   const { uri, source, exif, onConfirm } = route.params ?? {};
+  const [loading, setLoading] = useState(false);
 
   if (!uri) {
     return (
@@ -23,23 +25,34 @@ export default function PreviewScreen() {
     );
   }
 
-  const onDone = () => {
+  const onDone = async () => {
     if (typeof onConfirm === 'function') {
       onConfirm(uri);
       nav.goBack();
       return;
     }
 
-    const result = {
-      ...MOCK_IDENTIFY_RESULT,
-      photoUri: uri ?? MOCK_IDENTIFY_RESULT.photoUri,
-      uploadDate: new Date().toLocaleString(),
-    };
+    try {
+      setLoading(true);
 
-    nav.replace('Result', {
-      ...result,
-      lowConfidence: Number(result.confidence) < LOW_CONFIDENCE_THRESHOLD,
-    });
+      await new Promise(resolve => setTimeout(resolve, 1200));
+
+      const result = {
+        ...MOCK_IDENTIFY_RESULT,
+        photoUri: uri ?? MOCK_IDENTIFY_RESULT.photoUri,
+        uploadDate: new Date().toLocaleString(),
+      };
+
+      nav.replace('Result', {
+        ...result,
+        lowConfidence: Number(result.confidence) < LOW_CONFIDENCE_THRESHOLD,
+      });
+    } catch (error) {
+      console.warn(error);
+      Alert.alert('Scan failed', 'Could not analyze the photo. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -69,6 +82,7 @@ export default function PreviewScreen() {
         </View>
       </View>
 
+      {loading && <ScannerOverlay label="Scanning plant…" />}
     </SafeAreaView>
   );
 }
