@@ -131,7 +131,8 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: 4,
-    marginBottom: 12,
+    marginTop: 4,
+    marginBottom: 16,
   },
   title: {
     fontSize: 24,

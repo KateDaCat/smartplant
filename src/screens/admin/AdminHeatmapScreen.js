@@ -371,9 +371,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E3E8EE',
+    gap: 6,
   },
   headerTitle: { fontSize: 24, fontWeight: '700', color: '#0F1C2E' },
-  headerSubtitle: { fontSize: 12, color: '#5B6C7C', marginTop: 6 },
+  headerSubtitle: { fontSize: 12, color: '#5B6C7C', marginTop: 2 },
   modeRow: {
     paddingHorizontal: 20,
     paddingVertical: 12,
