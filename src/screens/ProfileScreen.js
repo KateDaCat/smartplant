@@ -38,46 +38,67 @@ export default function ProfileScreen() {
   );
 
   const renderItem = ({ item }) => {
-    // Accept either remote URL (string) or local require()
     const imgSource =
       typeof item.photoUri === 'string' ? { uri: item.photoUri } : item.photoUri;
 
-    return (
-        <Pressable
-          onPress={() =>
-            nav.navigate('ObservationDetail', {
-              id: item.id,
-              speciesName: item.speciesName,
-              scientificName: item.scientificName,
-              commonName: item.commonName,
-              isEndangered: item.isEndangered,
-              photoUri: item.photoUri,
-              createdAt: item.createdAt,
-              confidence: item.confidence,
-              region: item.region,
-              locationName: item.locationName,
-              latitude: item.latitude,
-              longitude: item.longitude,
-              notes: item.notes,
-              uploadedBy: item.uploadedBy,
-              source: item.source,
-            })
-          }
-          style={s.card}
-          android_ripple={{ color: '#00000014' }}
-        >
-          <Image source={imgSource} style={s.cardImage} />
+    const openObservation = () =>
+      nav.navigate('ObservationDetail', {
+        id: item.id,
+        speciesName: item.speciesName,
+        scientificName: item.scientificName,
+        commonName: item.commonName,
+        isEndangered: item.isEndangered,
+        photoUri: item.photoUri,
+        createdAt: item.createdAt,
+        confidence: item.confidence,
+        region: item.region,
+        locationName: item.locationName,
+        latitude: item.latitude,
+        longitude: item.longitude,
+        notes: item.notes,
+        uploadedBy: item.uploadedBy,
+        source: item.source,
+      });
 
-          <View style={s.cardBody}>
-            <Text numberOfLines={1} style={s.cardTitle}>
+    const initials = (item.uploadedBy || user.username || '?')
+      .slice(0, 2)
+      .toUpperCase();
+
+    return (
+      <View style={s.post}>
+        <Pressable
+          style={s.imageWrap}
+          onPress={openObservation}
+          android_ripple={{ color: '#00000018' }}
+        >
+          <Image source={imgSource} style={s.postImage} resizeMode="cover" />
+        </Pressable>
+
+        <View style={s.postBody}>
+          <View style={s.postBadgeRow}>
+            <View style={s.userBadge}>
+              <Text style={s.userBadgeText}>{initials}</Text>
+            </View>
+            <Text style={s.username}>{item.uploadedBy || user.username}</Text>
+          </View>
+          <View style={s.postBodyHeader}>
+            <Text numberOfLines={2} style={s.postTitle}>
               {item.speciesName || item.commonName || 'Unknown species'}
             </Text>
-            <Text style={s.cardSub}>
-              {item.locationName ? item.locationName : 'Location not recorded'}
-            </Text>
-            <Text style={s.cardMeta}>{fmt(item.createdAt)}</Text>
+            <Pressable
+              style={s.viewButton}
+              onPress={openObservation}
+              android_ripple={{ color: '#00000010', borderless: false }}
+            >
+              <Text style={s.viewButtonText}>View</Text>
+            </Pressable>
           </View>
-        </Pressable>
+          <Text style={s.postMeta}>
+            {item.locationName ? item.locationName : 'Location not recorded'}
+          </Text>
+          <Text style={s.postTimestamp}>{fmt(item.createdAt)}</Text>
+        </View>
+      </View>
     );
   };
 
@@ -87,7 +108,9 @@ export default function ProfileScreen() {
       <View style={[s.header, { paddingTop: insets.top + 12 }]}>
         <View style={s.headerRow}>
           <View style={s.profileInfo}>
-            <Image source={{ uri: user.avatar }} style={s.avatar} />
+            <View style={s.avatar}>
+              <Ionicons name="person-outline" size={42} color="#1F2A37" />
+            </View>
             <View>
               <Text style={s.name}>{user.username}</Text>
               <Text style={s.uid}>UID: {user.uid}</Text>
@@ -123,7 +146,9 @@ export default function ProfileScreen() {
       ) : (
         <View style={s.emptyWrap}>
           <Text style={s.emptyText}>No plants yet</Text>
-          <Text style={s.emptySub}>Capture or upload a plant to see it here.</Text>
+          <Text style={s.emptySub}>
+            Capture or upload a plant to see it here.
+          </Text>
         </View>
       )}
     </SafeAreaView>
@@ -185,32 +210,58 @@ const s = StyleSheet.create({
     color: '#335a44',
   },
 
-  listContent: { paddingHorizontal: 0, paddingBottom: 28, paddingTop: 4 },
+  listContent: { paddingHorizontal: 0, paddingBottom: 48, paddingTop: 12 },
 
-  card: {
-    flexDirection: 'row',
-    marginHorizontal: 16,
-    marginTop: 16,
+  post: {
+    width: '100%',
+    marginBottom: 32,
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 12,
-    gap: 14,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
   },
-  cardImage: {
-    width: 88,
-    height: 88,
-    borderRadius: 14,
-    backgroundColor: '#D1D5DB',
+  imageWrap: {
+    backgroundColor: '#CBD5F5',
   },
-  cardBody: { flex: 1, gap: 8, justifyContent: 'center' },
-  cardTitle: { fontSize: 16, fontWeight: '800', color: '#1F2937' },
-  cardSub: { color: '#334155', fontSize: 13, fontWeight: '600' },
-  cardMeta: { color: '#64748B', fontSize: 12.5 },
+  postImage: {
+    width: '100%',
+    aspectRatio: 1,
+  },
+  postBody: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 18,
+    gap: 10,
+    backgroundColor: '#FFFFFF',
+  },
+  postBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  userBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#D8E9DF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  userBadgeText: { fontSize: 15, fontWeight: '700', color: '#24543B' },
+  username: { fontSize: 15, fontWeight: '700', color: '#1F2A37' },
+  postBodyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  postTitle: { flex: 1, fontSize: 17, fontWeight: '800', color: '#0F172A' },
+  viewButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: '#2F6C4F',
+  },
+  viewButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
+  postMeta: { fontSize: 13.5, fontWeight: '600', color: '#334155' },
+  postTimestamp: { fontSize: 12.5, fontWeight: '600', color: '#64748B' },
 
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: 18, fontWeight: '800', color: '#2b2b2b' },

@@ -3,16 +3,15 @@ import React, { useState } from 'react';
 import { View, Image, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import ScannerOverlay from '../screens/components/ScannerOverlay'; // ✅ correct path
 import { MOCK_IDENTIFY_RESULT } from '../data/mockPlants';
+import ScannerOverlay from './components/ScannerOverlay';
 
-const API_BASE = 'https://<your-backend-host>';
 const LOW_CONFIDENCE_THRESHOLD = 60;
 
 export default function PreviewScreen() {
   const nav = useNavigation();
   const route = useRoute();
-  const { uri, source, exif, onConfirm } = route.params ?? {};
+  const { uri, source, exif, onConfirm, location } = route.params ?? {};
   const [loading, setLoading] = useState(false);
 
   if (!uri) {
@@ -27,48 +26,30 @@ export default function PreviewScreen() {
   }
 
   const onDone = async () => {
-    try {
-      setLoading(true);
     if (typeof onConfirm === 'function') {
       onConfirm(uri);
       nav.goBack();
       return;
     }
 
-    const USE_MOCK = true;
+    try {
+      setLoading(true);
 
-    let result;
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 1200));
-      result = {
+      await new Promise(resolve => setTimeout(resolve, 1200));
+
+      const result = {
         ...MOCK_IDENTIFY_RESULT,
         photoUri: uri ?? MOCK_IDENTIFY_RESULT.photoUri,
         uploadDate: new Date().toLocaleString(),
       };
-    } else {
-      const form = new FormData();
-      form.append('image', { uri, name: 'photo.jpg', type: 'image/jpeg' });
-      form.append('source', source || 'unknown');
-      form.append('exif', JSON.stringify(exif ?? {}));
 
-      const res = await fetch(`${API_BASE}/api/identify`, { method: 'POST', headers: { Accept: 'application/json' }, body: form });
-      if (!res.ok) throw new Error(`Identify failed: ${res.status}`);
-      const data = await res.json();
-      result = {
-        plantName: data.species_name,
-        confidence: Number(data.confidence_score) || 0,
-        conservationStatus: data.conservation_status || 'Unknown',
-        region: data.region || 'Unknown',
-        locationName: data.location_name || 'Unknown location',
-        uploadedBy: data.uploaded_by || 'You',
-        uploadDate: data.uploaded_at || new Date().toISOString(),
-        photoUri: uri,
-      };
-    }
-
-    nav.replace('Result', { ...result, lowConfidence: result.confidence < LOW_CONFIDENCE_THRESHOLD });
-    } catch (e) {
-      console.warn(e);
+      nav.replace('Result', {
+        ...result,
+        lowConfidence: Number(result.confidence) < LOW_CONFIDENCE_THRESHOLD,
+        location,
+      });
+    } catch (error) {
+      console.warn(error);
       Alert.alert('Scan failed', 'Could not analyze the photo. Please try again.');
     } finally {
       setLoading(false);
@@ -76,7 +57,6 @@ export default function PreviewScreen() {
   };
 
   return (
-    // ✅ SafeAreaView keeps header clear of the notch/camera
     <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>
       {/* background image */}
       <Image source={{ uri }} style={s.img} resizeMode="contain" />
@@ -97,6 +77,13 @@ export default function PreviewScreen() {
 
         <View style={s.meta}>
           <Text style={s.metaTxt}>Source: {source || 'unknown'}</Text>
+          {location?.latitude != null && location?.longitude != null && (
+            <Text style={s.metaTxt}>
+              Location: {location.latitude.toFixed?.(4) ?? location.latitude},{' '}
+              {location.longitude.toFixed?.(4) ?? location.longitude}
+              {location.source === 'exif' ? ' (from photo)' : location.source === 'device' ? ' (from device GPS)' : ''}
+            </Text>
+          )}
           {exif?.GPSLatitude && exif?.GPSLongitude && (
             <Text style={s.metaTxt}>EXIF GPS: {exif.GPSLatitude} , {exif.GPSLongitude}</Text>
           )}
