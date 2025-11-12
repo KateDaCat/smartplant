@@ -419,9 +419,11 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     backgroundColor: '#F1F5F9',
+    alignItems: 'center',
   },
   alertHeaderRow: {
     backgroundColor: '#FEE2E2',
+    alignItems: 'center',
   },
   separator: {
     height: 1,
@@ -435,17 +437,17 @@ const styles = StyleSheet.create({
   cellWide: {
     flex: 1.6,
   },
-    cellActionHeader: {
-      width: 120,
-      textAlign: 'right',
-    },
-    cellAction: {
-      width: 120,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 8,
-    },
+  cellActionHeader: {
+    width: 120,
+    textAlign: 'center',
+  },
+  cellAction: {
+    width: 120,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
   headerText: {
     fontWeight: '700',
     color: '#0F172A',
