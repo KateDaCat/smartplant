@@ -1,6 +1,17 @@
 import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+  Modal,
+  Pressable,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { ADMIN_IOT_DETAIL } from '../../navigation/routes';
@@ -65,6 +76,42 @@ const MOCK_IOT_DEVICES = [
 export default function AdminIotScreen() {
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAddModalVisible, setAddModalVisible] = useState(false);
+  const [newDeviceForm, setNewDeviceForm] = useState(() => ({
+    deviceId: '',
+    plantSpecies: '',
+    plantName: '',
+    latitude: '',
+    longitude: '',
+    locationName: '',
+  }));
+
+  const resetForm = () =>
+    setNewDeviceForm({
+      deviceId: '',
+      plantSpecies: '',
+      plantName: '',
+      latitude: '',
+      longitude: '',
+      locationName: '',
+    });
+
+  const openAddModal = () => {
+    resetForm();
+    setAddModalVisible(true);
+  };
+  const closeAddModal = () => setAddModalVisible(false);
+
+  const handleFormChange = (key, value) =>
+    setNewDeviceForm(prev => ({
+      ...prev,
+      [key]: value,
+    }));
+
+  const handleSubmitNewDevice = () => {
+    closeAddModal();
+    Alert.alert('Device queued', 'IoT device creation will be handled by the backend workflow.');
+  };
 
   const filteredDevices = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -122,6 +169,7 @@ export default function AdminIotScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.headerTitle}>IoT Monitoring</Text>
+      <View style={styles.searchWrapper}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={16} color="#64748B" />
           <TextInput
@@ -141,6 +189,15 @@ export default function AdminIotScreen() {
             </TouchableOpacity>
           )}
         </View>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={openAddModal}
+          accessibilityRole="button"
+          accessibilityLabel="Add IoT device"
+        >
+          <Ionicons name="add-circle" size={28} color="#2563EB" />
+        </TouchableOpacity>
+      </View>
 
         {noMatches ? (
           <View style={[styles.table, styles.emptyCard]}>
@@ -186,7 +243,107 @@ export default function AdminIotScreen() {
             </View>
           </>
         )}
+
+      <Modal
+        transparent
+        animationType="fade"
+        visible={isAddModalVisible}
+        onRequestClose={closeAddModal}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={closeAddModal}>
+          <Pressable style={styles.modalCard} onPress={event => event.stopPropagation()}>
+            <Text style={styles.modalTitle}>Add IoT Device</Text>
+            <Text style={styles.modalSubtitle}>
+              Provide the device details so admins can monitor the new sensor in real time.
+            </Text>
+            <ScrollView
+              contentContainerStyle={styles.modalContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <FormField
+                label="Device ID"
+                value={newDeviceForm.deviceId}
+                placeholder="e.g. DEV-901"
+                onChangeText={value => handleFormChange('deviceId', value)}
+              />
+              <FormField
+                label="Plant Species"
+                value={newDeviceForm.plantSpecies}
+                placeholder="e.g. Nepenthes rafflesiana"
+                onChangeText={value => handleFormChange('plantSpecies', value)}
+              />
+              <FormField
+                label="Plant Name"
+                value={newDeviceForm.plantName}
+                placeholder="Common name (optional)"
+                onChangeText={value => handleFormChange('plantName', value)}
+              />
+              <View style={styles.modalRow}>
+                <FormField
+                  label="Latitude"
+                  value={newDeviceForm.latitude}
+                  placeholder="e.g. 1.3521"
+                  keyboardType="numeric"
+                  onChangeText={value => handleFormChange('latitude', value)}
+                  containerStyle={styles.modalRowItem}
+                />
+                <FormField
+                  label="Longitude"
+                  value={newDeviceForm.longitude}
+                  placeholder="e.g. 103.8198"
+                  keyboardType="numeric"
+                  onChangeText={value => handleFormChange('longitude', value)}
+                  containerStyle={styles.modalRowItem}
+                />
+              </View>
+              <FormField
+                label="Location"
+                value={newDeviceForm.locationName}
+                placeholder="Location description"
+                onChangeText={value => handleFormChange('locationName', value)}
+              />
+            </ScrollView>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalCancel]}
+                onPress={closeAddModal}
+              >
+                <Text style={[styles.modalButtonText, styles.modalCancelText]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalPrimary]}
+                onPress={handleSubmitNewDevice}
+              >
+                <Text style={styles.modalButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
+  );
+}
+
+function FormField({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  keyboardType = 'default',
+  containerStyle,
+}) {
+  return (
+    <View style={[styles.fieldContainer, containerStyle]}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TextInput
+        style={styles.fieldInput}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor="#94A3B8"
+        keyboardType={keyboardType}
+      />
+    </View>
   );
 }
 
@@ -300,41 +457,132 @@ const styles = StyleSheet.create({
     color: '#475467',
     textAlign: 'center',
   },
-    searchBar: {
-      marginTop: 16,
-      marginBottom: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-      borderRadius: 14,
-      backgroundColor: '#FFFFFF',
-      borderWidth: 1,
-      borderColor: '#E2E8F0',
-      gap: 8,
-    },
-    searchInput: {
-      flex: 1,
-      fontSize: 13.5,
-      color: '#0F172A',
-    },
-    clearButton: {
-      padding: 4,
-    },
-    emptyCard: {
-      paddingVertical: 32,
-      paddingHorizontal: 20,
-      alignItems: 'center',
-      gap: 10,
-    },
-    emptyCardTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: '#1F2937',
-    },
-    emptyCardSubtitle: {
-      fontSize: 13,
-      color: '#6B7280',
-      textAlign: 'center',
-    },
+  searchWrapper: {
+    marginTop: 16,
+    marginBottom: 16,
+    position: 'relative',
+    alignItems: 'flex-end',
+  },
+  searchBar: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 8,
+  },
+  addButton: {
+    position: 'absolute',
+    right: 6,
+    top: -20,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 13.5,
+    color: '#0F172A',
+  },
+  clearButton: {
+    padding: 4,
+  },
+  emptyCard: {
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    gap: 10,
+  },
+  emptyCardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  emptyCardSubtitle: {
+    fontSize: 13,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 420,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    gap: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: '#475467',
+    lineHeight: 18,
+  },
+  modalContent: {
+    gap: 14,
+    paddingBottom: 4,
+  },
+  modalRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalRowItem: {
+    flex: 1,
+  },
+  fieldContainer: {
+    gap: 6,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1F2937',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  fieldInput: {
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D0D5DD',
+    paddingHorizontal: 14,
+    backgroundColor: '#F8FAFC',
+    fontSize: 14,
+    color: '#0F172A',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  modalButton: {
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 999,
+  },
+  modalCancel: {
+    backgroundColor: '#E2E8F0',
+  },
+  modalPrimary: {
+    backgroundColor: '#2563EB',
+  },
+  modalButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  modalCancelText: {
+    color: '#1F2937',
+  },
 });
