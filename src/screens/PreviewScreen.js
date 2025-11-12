@@ -11,7 +11,7 @@ const LOW_CONFIDENCE_THRESHOLD = 60;
 export default function PreviewScreen() {
   const nav = useNavigation();
   const route = useRoute();
-  const { uri, source, exif, onConfirm } = route.params ?? {};
+  const { uri, source, exif, onConfirm, location } = route.params ?? {};
   const [loading, setLoading] = useState(false);
 
   if (!uri) {
@@ -46,6 +46,7 @@ export default function PreviewScreen() {
       nav.replace('Result', {
         ...result,
         lowConfidence: Number(result.confidence) < LOW_CONFIDENCE_THRESHOLD,
+        location,
       });
     } catch (error) {
       console.warn(error);
@@ -76,6 +77,13 @@ export default function PreviewScreen() {
 
         <View style={s.meta}>
           <Text style={s.metaTxt}>Source: {source || 'unknown'}</Text>
+          {location?.latitude != null && location?.longitude != null && (
+            <Text style={s.metaTxt}>
+              Location: {location.latitude.toFixed?.(4) ?? location.latitude},{' '}
+              {location.longitude.toFixed?.(4) ?? location.longitude}
+              {location.source === 'exif' ? ' (from photo)' : location.source === 'device' ? ' (from device GPS)' : ''}
+            </Text>
+          )}
           {exif?.GPSLatitude && exif?.GPSLongitude && (
             <Text style={s.metaTxt}>EXIF GPS: {exif.GPSLatitude} , {exif.GPSLongitude}</Text>
           )}
