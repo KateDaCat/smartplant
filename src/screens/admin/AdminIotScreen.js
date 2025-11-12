@@ -253,7 +253,7 @@ export default function AdminIotScreen() {
                 <View style={[styles.row, styles.headerRow, styles.alertHeaderRow]}>
                   <Text style={[styles.cellWide, styles.headerText, styles.alertHeaderText]}>Plant</Text>
                   <Text style={[styles.cell, styles.headerText, styles.alertHeaderText]}>Device ID</Text>
-                  <Text style={[styles.cellAction, styles.headerText, styles.alertHeaderText]}>Action</Text>
+            <Text style={[styles.cellActionHeader, styles.headerText, styles.alertHeaderText]}>Action</Text>
                 </View>
                 {alertDevices.map((item) => renderDeviceRow(item, true))}
               </View>
@@ -263,7 +263,7 @@ export default function AdminIotScreen() {
               <View style={[styles.row, styles.headerRow]}>
                 <Text style={[styles.cellWide, styles.headerText]}>Plant</Text>
                 <Text style={[styles.cell, styles.headerText]}>Device ID</Text>
-                <Text style={[styles.cellAction, styles.headerText]}>Action</Text>
+                  <Text style={[styles.cellActionHeader, styles.headerText]}>Action</Text>
               </View>
 
               <FlatList
@@ -435,10 +435,14 @@ const styles = StyleSheet.create({
   cellWide: {
     flex: 1.6,
   },
+    cellActionHeader: {
+      width: 120,
+      textAlign: 'right',
+    },
     cellAction: {
-      width: 140,
+      width: 120,
       flexDirection: 'row',
-      justifyContent: 'flex-end',
+      justifyContent: 'center',
       alignItems: 'center',
       gap: 8,
     },
