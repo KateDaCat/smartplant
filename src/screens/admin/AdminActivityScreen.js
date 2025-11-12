@@ -40,7 +40,7 @@ const MOCK_ACTIVITY = [
     actor: 'Sherlyn Lau',
     type: 'device_add',
     target: 'DEV-909',
-    meta: { deviceId: 'DEV-909', plantName: 'Forest Edge Sensor' },
+    meta: { deviceId: 'DEV-909', speciesName: 'Nepenthes rafflesiana' },
     createdAt: '2025-11-10T10:15:00Z',
   },
   {
@@ -48,7 +48,11 @@ const MOCK_ACTIVITY = [
     actor: 'Ranger Amir',
     type: 'alert_resolve',
     target: 'DEV-512B',
-    meta: { deviceId: 'DEV-512B', plantName: 'Bog Microclimate Station' },
+    meta: {
+      deviceId: 'DEV-512B',
+      speciesName: 'Nepenthes mirabilis',
+      alertTypes: ['humidity', 'motion'],
+    },
     createdAt: '2025-11-10T09:52:00Z',
   },
   {
@@ -57,6 +61,14 @@ const MOCK_ACTIVITY = [
     type: 'user_deactivate',
     target: 'kelly.then@example.com',
     createdAt: '2025-11-10T09:20:00Z',
+  },
+  {
+    id: 'act_005c',
+    actor: 'Admin Lee',
+    type: 'user_assign_role',
+    target: 'kelly.then@example.com',
+    meta: { role: 'Citizen Scientist' },
+    createdAt: '2025-11-10T08:55:00Z',
   },
   {
     id: 'act_005b',
@@ -79,7 +91,11 @@ const MOCK_ACTIVITY = [
     actor: 'Ranger Amir',
     type: 'alert_resolve',
     target: 'DEV-409A',
-    meta: { deviceId: 'DEV-409A', plantName: 'Rainforest Edge Camera' },
+    meta: {
+      deviceId: 'DEV-409A',
+      speciesName: 'Nepenthes mirabilis',
+      alertTypes: ['motion'],
+    },
     createdAt: '2025-11-09T19:40:00Z',
   },
   {
@@ -94,7 +110,7 @@ const MOCK_ACTIVITY = [
     actor: 'Sherlyn Lau',
     type: 'device_add',
     target: 'DEV-905',
-    meta: { deviceId: 'DEV-905', plantName: 'Canopy Thermal Sensor' },
+    meta: { deviceId: 'DEV-905', speciesName: 'Dendrobium anosmum' },
     createdAt: '2025-11-09T13:32:00Z',
   },
 ];
@@ -155,11 +171,11 @@ const typeToCategory = type => {
   }
 };
 
-const ACTIVITY_TEMPLATES = {
+const ACTIVITY_TEMPLATES = roleLabels => ({
   user_activate: entry => `${entry.actor} reactivated user ${entry.target}.`,
   user_deactivate: entry => `${entry.actor} deactivated user ${entry.target}.`,
   user_assign_role: entry =>
-    `${entry.actor} assigned ${entry.meta?.role ?? 'a new role'} to ${entry.target}.`,
+    `${entry.actor} assigned ${roleLabels[entry.meta?.role] ?? entry.meta?.role ?? 'a new role'} to ${entry.target}.`,
   flag_identify: entry =>
     `${entry.actor} identified plant ${entry.meta?.plantName ?? entry.target}, AI suggested ${entry.meta?.aiGuess ?? 'a match'}.`,
   flag_approve: entry =>
@@ -169,13 +185,13 @@ const ACTIVITY_TEMPLATES = {
   heatmap_unmask: entry =>
     `${entry.actor} unmasked location ${entry.meta?.locationName ?? 'Unknown'} for ${entry.meta?.plantName ?? entry.target}.`,
   device_add: entry =>
-    `${entry.actor} added device ${entry.meta?.deviceId ?? entry.target} for ${entry.meta?.plantName ?? 'a plant'}.`,
+    `${entry.actor} added device ${entry.meta?.deviceId ?? entry.target} for ${entry.meta?.speciesName ?? entry.meta?.plantName ?? 'a plant species'}.`,
   alert_resolve: entry =>
-    `${entry.actor} resolved IoT alerts for ${entry.meta?.deviceId ?? entry.target}.`,
-};
+    `${entry.actor} resolved ${entry.meta?.alertTypes?.join(', ') ?? 'an IoT alert'} for ${entry.meta?.deviceId ?? entry.target}.`,
+});
 
-const buildActivityMessage = entry => {
-  const template = ACTIVITY_TEMPLATES[entry.type];
+const buildActivityMessage = (entry, roleLabels) => {
+  const template = ACTIVITY_TEMPLATES(roleLabels)[entry.type];
   if (template) return template(entry);
   if (entry.action && entry.target) return `${entry.actor} ${entry.action} ${entry.target}.`;
   if (entry.comment) return `${entry.actor}: ${entry.comment}`;
@@ -183,7 +199,12 @@ const buildActivityMessage = entry => {
 };
 
 function ActivityItem({ entry }) {
-  const message = buildActivityMessage(entry);
+  const roleDisplayNames = {
+    'Field Ranger': 'Field Ranger',
+    'Citizen Scientist': 'Citizen Scientist',
+    Admin: 'Administrator',
+  };
+  const message = buildActivityMessage(entry, roleDisplayNames);
 
   return (
     <View style={styles.activityCard}>
