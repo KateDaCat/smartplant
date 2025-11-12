@@ -108,7 +108,9 @@ export default function ProfileScreen() {
       <View style={[s.header, { paddingTop: insets.top + 12 }]}>
         <View style={s.headerRow}>
           <View style={s.profileInfo}>
-            <Image source={{ uri: user.avatar }} style={s.avatar} />
+            <View style={s.avatar}>
+              <Ionicons name="person-outline" size={42} color="#1F2A37" />
+            </View>
             <View>
               <Text style={s.name}>{user.username}</Text>
               <Text style={s.uid}>UID: {user.uid}</Text>
