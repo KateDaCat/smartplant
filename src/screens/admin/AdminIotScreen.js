@@ -168,7 +168,17 @@ export default function AdminIotScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.headerTitle}>IoT Monitoring</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.headerTitle}>IoT Monitoring</Text>
+        <TouchableOpacity
+          style={styles.headerAddButton}
+          onPress={openAddModal}
+          accessibilityRole="button"
+          accessibilityLabel="Add IoT device"
+        >
+          <Ionicons name="add" size={28} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
       <View style={styles.searchWrapper}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={16} color="#64748B" />
@@ -189,14 +199,6 @@ export default function AdminIotScreen() {
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={openAddModal}
-          accessibilityRole="button"
-          accessibilityLabel="Add IoT device"
-        >
-          <Ionicons name="add-circle" size={28} color="#2563EB" />
-        </TouchableOpacity>
       </View>
 
         {noMatches ? (
@@ -358,6 +360,23 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1F2A37',
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  headerAddButton: {
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 999,
+    shadowColor: '#2563EB',
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: {width: 0, height: 4},
+    elevation: 3,
+  },
   table: {
     backgroundColor: '#FFFFFF',
     borderRadius: 18,
@@ -458,10 +477,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   searchWrapper: {
-    marginTop: 16,
     marginBottom: 16,
-    position: 'relative',
-    alignItems: 'flex-end',
   },
   searchBar: {
     width: '100%',
@@ -474,11 +490,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
     gap: 8,
-  },
-  addButton: {
-    position: 'absolute',
-    right: 6,
-    top: -20,
   },
   searchInput: {
     flex: 1,
