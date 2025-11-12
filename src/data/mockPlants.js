@@ -42,7 +42,8 @@ export const MOCK_POSTS = [
     longitude: 110.4321,
     notes:
       'Found near shaded forest edge. Healthy pitcher coloration, moist soil.',
-    uploadedBy: 'You',
+    uploadedBy: 'Kelly Then',
+    userId: 2001,
     source: 'camera',
   },
   {
@@ -62,7 +63,8 @@ export const MOCK_POSTS = [
     latitude: -3.7911,
     longitude: 102.2655,
     notes: 'Blooming phase; strong odor. Large diameter.',
-    uploadedBy: 'You',
+    uploadedBy: 'Ranger Amir',
+    userId: 2002,
     source: 'library',
   },
   {
@@ -81,11 +83,10 @@ export const MOCK_POSTS = [
     latitude: 1.3001,
     longitude: 103.8003,
     notes: 'Blurry image; AI not confident. Should re-scan or flag.',
-    uploadedBy: 'You',
+    uploadedBy: 'Sherlyn Lau',
+    userId: '030825',
     source: 'camera',
   },
-
-  
 ];
 
 export const MOCK_ROLES = [
