@@ -16,7 +16,7 @@ const MOCK_ACTIVITY = [
     actor: 'Sherlyn Lau',
     type: 'user_assign_role',
     target: 'reza.rashid@example.com',
-    meta: { role: 'Field Ranger' },
+    meta: { role: 'Plant Researcher' },
     createdAt: '2025-11-10T10:32:00Z',
   },
   {
@@ -67,7 +67,7 @@ const MOCK_ACTIVITY = [
     actor: 'Admin Lee',
     type: 'user_assign_role',
     target: 'kelly.then@example.com',
-    meta: { role: 'Citizen Scientist' },
+    meta: { role: 'User' },
     createdAt: '2025-11-10T08:55:00Z',
   },
   {
@@ -200,9 +200,9 @@ const buildActivityMessage = (entry, roleLabels) => {
 
 function ActivityItem({ entry }) {
   const roleDisplayNames = {
-    'Field Ranger': 'Field Ranger',
-    'Citizen Scientist': 'Citizen Scientist',
     Admin: 'Administrator',
+    'Plant Researcher': 'Plant Researcher',
+    User: 'User',
   };
   const message = buildActivityMessage(entry, roleDisplayNames);
 
