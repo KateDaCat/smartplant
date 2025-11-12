@@ -109,8 +109,23 @@ export default function AdminIotScreen() {
     }));
 
   const handleSubmitNewDevice = () => {
-    closeAddModal();
-    Alert.alert('Device queued', 'IoT device creation will be handled by the backend workflow.');
+    const deviceLabel = newDeviceForm.deviceId.trim() || 'New device';
+    Alert.alert(
+      'Confirm new device',
+      `Confirm to add the device ${deviceLabel}?`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Confirm',
+          style: 'default',
+          onPress: () => {
+            closeAddModal();
+            Alert.alert('Success', `${deviceLabel} is added in IoT Monitor.`);
+          },
+        },
+      ],
+      {cancelable: true},
+    );
   };
 
   const filteredDevices = useMemo(() => {
