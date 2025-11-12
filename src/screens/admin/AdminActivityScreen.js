@@ -170,11 +170,8 @@ const typeToCategory = type => {
 function ActivityItem({ entry }) {
   const meta = TYPE_META[entry.type] ?? TYPE_META.default;
   return (
-    <View style={styles.activityCard}>
-      <View style={[styles.iconBadge, { backgroundColor: meta.bg }]}>
-        <Ionicons name={meta.icon} size={18} color={meta.tint} />
-      </View>
-      <View style={styles.activityBody}>
+      <View style={styles.activityCard}>
+        <View style={styles.activityBody}>
         <View style={styles.activityHeader}>
           <Text style={styles.activityActor}>{entry.actor}</Text>
           <Text style={styles.activityTime}>{formatRelativeTime(entry.createdAt)}</Text>
@@ -341,28 +338,18 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   activityCard: {
-    flexDirection: 'row',
     padding: 16,
     borderRadius: 18,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    gap: 14,
     shadowColor: '#0F172A',
     shadowOpacity: 0.04,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  iconBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   activityBody: {
-    flex: 1,
     gap: 6,
   },
   activityHeader: {
