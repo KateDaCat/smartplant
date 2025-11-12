@@ -185,12 +185,6 @@ function ActivityItem({ entry }) {
             : entry.action}{' '}
           <Text style={styles.activityTarget}>{entry.target}</Text>
         </Text>
-        {!!entry.comment && (
-          <View style={styles.commentBubble}>
-            <Ionicons name="chatbubble-ellipses-outline" size={14} color="#0F172A" />
-            <Text style={styles.commentText}>{entry.comment}</Text>
-          </View>
-        )}
       </View>
     </View>
   );
@@ -229,9 +223,6 @@ export default function AdminActivityScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.headerTitle}>Activity Feed</Text>
-      <Text style={styles.headerSubtitle}>
-        Track the latest admin actions across devices, alerts, and user management.
-      </Text>
 
       <View style={styles.searchBar}>
         <Ionicons name="search" size={16} color="#64748B" />
@@ -300,11 +291,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#0F172A',
-  },
-  headerSubtitle: {
-    marginTop: 6,
-    fontSize: 13,
-    color: '#475569',
   },
   searchBar: {
     marginTop: 20,
@@ -402,22 +388,6 @@ const styles = StyleSheet.create({
   activityTarget: {
     fontWeight: '600',
     color: '#0F172A',
-  },
-  commentBubble: {
-    flexDirection: 'row',
-    gap: 6,
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  commentText: {
-    flex: 1,
-    fontSize: 12,
-    color: '#1F2937',
   },
   emptyStateWrapper: {
     flexGrow: 1,
