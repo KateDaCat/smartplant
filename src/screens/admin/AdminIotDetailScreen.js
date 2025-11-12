@@ -1,11 +1,27 @@
 import React, { useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { ADMIN_IOT_ANALYTICS } from '../../navigation/routes';
 
-const formatDate = (iso) => {
+const thresholds = {
+  TEMP_HIGH: 32.0,
+  TEMP_LOW: 5.0,
+  HUMIDITY_HIGH: 85.0,
+  SOIL_MOISTURE_LOW: 20.0,
+};
+
+const formatDate = iso => {
+  if (!iso) return 'N/A';
   const date = new Date(iso);
   return Number.isNaN(date.getTime()) ? iso : date.toLocaleString();
 };
@@ -16,9 +32,9 @@ const DAYS = 24 * HOURS;
 const generateMockHistory = () => {
   const now = new Date();
   const start = new Date(now.getTime() - 7 * DAYS);
-  const steps = 56; // 7 days @ 3 hour intervals
+  const steps = 56;
 
-  return Array.from({ length: steps + 1 }, (_, index) => {
+  return Array.from({length: steps + 1}, (_, index) => {
     const pointDate = new Date(start.getTime() + index * 3 * HOURS);
     const phase = index / 3.4;
     const tempBase = 25 + 3.5 * Math.sin(phase) + 0.6 * Math.cos(phase * 1.2);
@@ -36,12 +52,12 @@ const generateMockHistory = () => {
   });
 };
 
-const coerceMetricNumber = (value) => {
+const coerceMetricNumber = value => {
   const numeric = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(numeric) ? numeric : null;
 };
 
-const normalizeHistoryEntry = (entry) => {
+const normalizeHistoryEntry = entry => {
   if (!entry) return null;
 
   const timestamp =
@@ -67,10 +83,10 @@ const normalizeHistoryEntry = (entry) => {
       readings?.soil_moisture ??
         readings?.soilMoisture ??
         readings?.soil ??
-        entry.soil_moisture
+        entry.soil_moisture,
     );
 
-  if ([temperature, humidity, soil].some((val) => val === null)) {
+  if ([temperature, humidity, soil].some(val => val === null)) {
     return null;
   }
 
@@ -90,19 +106,17 @@ const normalizeHistoryEntry = (entry) => {
   };
 };
 
-const SensorCard = ({ icon, title, value, unit, helper, alert }) => (
+const SensorCard = ({icon, title, value, unit, helper, alert}) => (
   <View style={[styles.sensorCard, alert ? styles.sensorCardAlert : styles.sensorCardOk]}>
     <View style={styles.sensorCardHeader}>
       <View
         style={[styles.sensorIconWrapper, alert ? styles.sensorIconAlert : styles.sensorIconOk]}
       >
-        <Ionicons
-          name={icon}
-          size={18}
-          color={alert ? '#991B1B' : '#166534'}
-        />
+        <Ionicons name={icon} size={18} color={alert ? '#991B1B' : '#166534'} />
       </View>
-      <Text style={[styles.sensorTitle, alert ? styles.sensorTitleAlert : styles.sensorTitleOk]}>{title}</Text>
+      <Text style={[styles.sensorTitle, alert ? styles.sensorTitleAlert : styles.sensorTitleOk]}>
+        {title}
+      </Text>
     </View>
     <Text style={[styles.sensorValue, alert ? styles.sensorValueAlert : styles.sensorValueOk]}>
       {value}
@@ -116,7 +130,7 @@ const SensorCard = ({ icon, title, value, unit, helper, alert }) => (
   </View>
 );
 
-export default function AdminIotDetailScreen({ route }) {
+export default function AdminIotDetailScreen({route}) {
   const navigation = useNavigation();
   const device = route?.params?.device;
 
@@ -128,29 +142,16 @@ export default function AdminIotDetailScreen({ route }) {
     );
   }
 
-  const alerts = Array.isArray(device.alerts) ? device.alerts : [];
+  const readings = device.readings ?? {};
 
-  const historySeries = useMemo(() => {
-    const normalizedHistory = Array.isArray(device.history)
-      ? device.history.map(normalizeHistoryEntry).filter(Boolean)
-      : [];
-
-    const fallbackHistory = generateMockHistory();
-    const merged = [...fallbackHistory];
-
-    normalizedHistory.forEach((entry) => {
-      merged.push(entry);
-    });
-
-    const uniqueMap = new Map();
-    merged.forEach((entry) => {
-      uniqueMap.set(entry.timestamp, entry);
-    });
-
-    return Array.from(uniqueMap.values()).sort(
-      (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
-    );
-  }, [device]);
+  const isTempAlert =
+    typeof readings.temperature === 'number' &&
+    (readings.temperature > thresholds.TEMP_HIGH || readings.temperature < thresholds.TEMP_LOW);
+  const isHumidityAlert =
+    typeof readings.humidity === 'number' && readings.humidity > thresholds.HUMIDITY_HIGH;
+  const isSoilAlert =
+    typeof readings.soil_moisture === 'number' && readings.soil_moisture < thresholds.SOIL_MOISTURE_LOW;
+  const isMotionAlert = Boolean(readings.motion_detected);
 
   const formatNumber = (val, digits = 1) => {
     if (typeof val !== 'number' || Number.isNaN(val)) return '--';
@@ -162,49 +163,97 @@ export default function AdminIotDetailScreen({ route }) {
       key: 'temperature',
       icon: 'thermometer-outline',
       title: 'Temperature',
-      value: formatNumber(device.readings.temperature, 1),
-      unit: '?C',
-      helper: alerts.includes('Temperature')
+      value: formatNumber(readings.temperature, 1),
+      unit: ' °C',
+      helper: isTempAlert
         ? 'Temperature exceeds the optimal window.'
         : 'Within optimal range.',
-      alert: alerts.includes('Temperature'),
+      alert: isTempAlert,
     },
     {
       key: 'humidity',
       icon: 'water-outline',
       title: 'Humidity',
-      value: formatNumber(device.readings.humidity, 0),
+      value: formatNumber(readings.humidity, 0),
       unit: '%',
-      helper: alerts.includes('Humidity')
+      helper: isHumidityAlert
         ? 'High humidity detected. Inspect shelter.'
         : 'Air moisture is stable.',
-      alert: alerts.includes('Humidity'),
+      alert: isHumidityAlert,
     },
     {
       key: 'soil_moisture',
       icon: 'leaf-outline',
       title: 'Soil Moisture',
-      value: formatNumber(device.readings.soil_moisture, 0),
+      value: formatNumber(readings.soil_moisture, 0),
       unit: '%',
-      helper: alerts.includes('Soil Moisture')
+      helper: isSoilAlert
         ? 'Soil moisture outside safe band.'
         : 'Root zone moisture is healthy.',
-      alert: alerts.includes('Soil Moisture'),
+      alert: isSoilAlert,
     },
     {
       key: 'motion_detected',
       icon: 'walk-outline',
       title: 'Motion',
-      value: device.readings.motion_detected ? 'Detected' : 'None',
-      unit: '',
-      helper: alerts.includes('Motion')
+      value: readings.motion_detected ? 'Detected' : 'None',
+      helper: isMotionAlert
         ? 'Unexpected movement near this device.'
         : 'No unusual activity reported.',
-      alert: alerts.includes('Motion'),
+      alert: isMotionAlert,
     },
   ];
 
-  const imageSource = device.photo ? device.photo : require('../../../assets/pitcher.jpg');
+  const historySeries = useMemo(() => {
+    const normalizedHistory = Array.isArray(device.history)
+      ? device.history.map(normalizeHistoryEntry).filter(Boolean)
+      : [];
+
+    const fallbackHistory = generateMockHistory();
+    const merged = [...fallbackHistory, ...normalizedHistory];
+
+    const uniqueMap = new Map();
+    merged.forEach(entry => {
+      uniqueMap.set(entry.timestamp, entry);
+    });
+
+    return Array.from(uniqueMap.values()).sort(
+      (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+    );
+  }, [device]);
+
+  const imageUri = device.species_photo || device.photo;
+  const imageSource =
+    typeof imageUri === 'string'
+      ? {uri: imageUri}
+      : imageUri || null;
+
+  const speciesName = device.species_name || device.species || 'N/A';
+  const locationName = device.location?.name;
+  const latitude = typeof device.location?.latitude === 'number'
+    ? device.location.latitude.toFixed(4)
+    : 'N/A';
+  const longitude = typeof device.location?.longitude === 'number'
+    ? device.location.longitude.toFixed(4)
+    : 'N/A';
+
+  const handleResolveAlerts = () => {
+    Alert.alert(
+      'Resolve alerts',
+      'Mark this device as resolved? Backend integration will update system data later.',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Confirm',
+          style: 'default',
+          onPress: () => {
+            Alert.alert('Alerts resolved', 'This device will be marked as resolved once backend actions are connected.');
+          },
+        },
+      ],
+      {cancelable: true},
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -221,45 +270,49 @@ export default function AdminIotDetailScreen({ route }) {
           </TouchableOpacity>
         </View>
 
-        <Image source={imageSource} style={styles.photo} resizeMode="cover" />
+        {imageSource && <Image source={imageSource} style={styles.photo} resizeMode="cover" />}
 
-        <Text style={styles.title}>{device.device_name}</Text>
+        <Text style={styles.title}>{device.device_name || 'Unnamed Device'}</Text>
         <Text style={styles.subtitle}>Device ID: {device.device_id}</Text>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Plant</Text>
-          <Text style={styles.sectionValue}>{device.species}</Text>
+          <Text style={styles.sectionValue}>{speciesName}</Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Location</Text>
-          <Text style={styles.sectionValue}>{device.location.name}</Text>
-          <Text style={styles.sectionMeta}>
-            {device.location.latitude.toFixed(4)}, {device.location.longitude.toFixed(4)}
-          </Text>
+          {locationName ? <Text style={styles.sectionValue}>{locationName}</Text> : null}
+          <Text style={styles.sectionMeta}>Lat: {latitude}</Text>
+          <Text style={styles.sectionMeta}>Long: {longitude}</Text>
         </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Sensor Readings</Text>
-            <View style={styles.sensorGrid}>
-              {sensorCards.map(({ key: sensorKey, ...cardProps }) => (
-                <SensorCard key={sensorKey} {...cardProps} />
-              ))}
-            </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Sensor Readings</Text>
+          <View style={styles.sensorGrid}>
+            {sensorCards.map(({key: sensorKey, ...cardProps}) => (
+              <SensorCard key={sensorKey} {...cardProps} />
+            ))}
           </View>
+        </View>
 
-          <TouchableOpacity
-            style={styles.historyButton}
-            activeOpacity={0.85}
-            onPress={() =>
-              navigation.navigate(ADMIN_IOT_ANALYTICS, {
-                device,
-                history: historySeries,
-              })
-            }
-          >
-            <Text style={styles.historyButtonText}>Open Analytics Dashboard</Text>
-          </TouchableOpacity>
+        <TouchableOpacity style={styles.resolveButton} activeOpacity={0.8} onPress={handleResolveAlerts}>
+          <Ionicons name="checkmark-done" size={18} color="#FFFFFF" />
+          <Text style={styles.resolveButtonText}>Resolve Alerts</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.historyButton}
+          activeOpacity={0.85}
+          onPress={() =>
+            navigation.navigate(ADMIN_IOT_ANALYTICS, {
+              device,
+              history: historySeries,
+            })
+          }
+        >
+          <Text style={styles.historyButtonText}>View Historical Data</Text>
+        </TouchableOpacity>
 
         <Text style={styles.updatedText}>Last updated {formatDate(device.last_updated)}</Text>
       </ScrollView>
@@ -281,24 +334,24 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 18,
   },
-    headerRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-      marginBottom: 12,
-    },
-    backButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      paddingVertical: 6,
-      paddingHorizontal: 4,
-    },
-    backButtonText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: '#0F172A',
-    },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    marginBottom: 0,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+  },
+  backButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
   title: {
     fontSize: 22,
     fontWeight: '700',
@@ -409,6 +462,29 @@ const styles = StyleSheet.create({
   },
   sensorHelperAlert: {
     color: '#B91C1C',
+  },
+  resolveButton: {
+    marginTop: 8,
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 16,
+    backgroundColor: '#DC2626',
+    shadowColor: '#DC2626',
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    shadowOffset: {width: 0, height: 2},
+    elevation: 4,
+  },
+  resolveButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.2,
   },
   updatedText: {
     fontSize: 12,
