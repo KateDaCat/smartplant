@@ -1,43 +1,57 @@
-import React, { useMemo, useState } from 'react';
-import { SafeAreaView, Text, StyleSheet, View, TouchableOpacity, TextInput } from 'react-native';
+import React, {useEffect, useMemo, useState, useCallback} from 'react';
+import {
+  SafeAreaView,
+  Text,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { ADMIN_USER_DETAIL } from '../../navigation/routes';
-
-const INITIAL_USERS = [
-  {
-    user_id: 1,
-    username: 'flora_admin',
-    role: 'Admin',
-    email: 'flora@smartplant.dev',
-    phone: '+60 12-345 6789',
-    active: true,
-    created_at: '2024-06-10T09:45:00Z',
-  },
-  {
-    user_id: 2,
-    username: 'ranger.sam',
-    role: 'Plant Researcher',
-    email: 'sam@smartplant.dev',
-    phone: '+60 13-222 1111',
-    active: false,
-    created_at: '2024-08-21T14:20:00Z',
-  },
-  {
-    user_id: 3,
-    username: 'data.joy',
-    role: 'User',
-    email: 'joy@smartplant.dev',
-    phone: '+60 17-555 6666',
-    active: true,
-    created_at: '2025-01-04T11:05:00Z',
-  },
-];
+import {fetchUsers} from '../../../services/api';
 
 export default function AdminUsersScreen() {
-  const [users, setUsers] = useState(INITIAL_USERS);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigation = useNavigation();
+
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchUsers();
+      setUsers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load users', err);
+      setError(err.message ?? 'Unable to fetch users');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const data = await fetchUsers();
+      setUsers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setError(err.message ?? 'Unable to refresh users');
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
 
   const handleUserUpdate = (updatedUser) => {
     if (!updatedUser || typeof updatedUser.user_id === 'undefined') {
@@ -86,39 +100,64 @@ export default function AdminUsersScreen() {
         )}
       </View>
 
-      <View style={styles.list}>
-        {filteredUsers.length === 0 && (
-          <View style={styles.emptyState}>
-            <Ionicons name="people-outline" size={20} color="#94A3B8" />
-            <Text style={styles.emptyStateText}>No users found. Try a different search.</Text>
+        {loading ? (
+          <View style={styles.loader}>
+            <ActivityIndicator size="large" color="#1E88E5" />
+            <Text style={styles.loaderText}>Loading users…</Text>
           </View>
-        )}
-        {filteredUsers.map((user) => (
-            <View key={user.user_id} style={styles.card}>
-              <Text style={[styles.username, !user.active && styles.usernameInactive]}>
-                {user.username}
-              </Text>
-              <View style={styles.metaRow}>
-                <View style={styles.metaTextCol}>
-                  <Text style={styles.metaId}>User ID: {user.user_id}</Text>
-                  <Text style={styles.phone}>{user.phone}</Text>
-                </View>
-                <TouchableOpacity
-                  activeOpacity={0.75}
-                  style={styles.viewButton}
-                  onPress={() =>
-                    navigation.navigate(ADMIN_USER_DETAIL, {
-                      user,
-                      onUpdate: handleUserUpdate,
-                    })
-                  }
-                >
-                  <Text style={styles.viewButtonText}>View</Text>
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.list}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            }
+          >
+            {error ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="warning-outline" size={20} color="#E57373" />
+                <Text style={styles.emptyStateText}>{error}</Text>
+                <TouchableOpacity onPress={loadUsers} style={styles.retryButton}>
+                  <Text style={styles.retryButtonText}>Try Again</Text>
                 </TouchableOpacity>
               </View>
-          </View>
-        ))}
-      </View>
+            ) : filteredUsers.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="people-outline" size={20} color="#94A3B8" />
+                <Text style={styles.emptyStateText}>
+                  No users found. Try a different search.
+                </Text>
+              </View>
+            ) : (
+              filteredUsers.map(user => (
+                <View key={user.user_id} style={styles.card}>
+                  <Text
+                    style={[styles.username, !user.is_active && styles.usernameInactive]}
+                  >
+                    {user.username}
+                  </Text>
+                  <View style={styles.metaRow}>
+                    <View style={styles.metaTextCol}>
+                      <Text style={styles.metaId}>User ID: {user.user_id}</Text>
+                      {!!user.phone && <Text style={styles.phone}>{user.phone}</Text>}
+                    </View>
+                    <TouchableOpacity
+                      activeOpacity={0.75}
+                      style={styles.viewButton}
+                      onPress={() =>
+                        navigation.navigate(ADMIN_USER_DETAIL, {
+                          user,
+                          onUpdate: handleUserUpdate,
+                        })
+                      }
+                    >
+                      <Text style={styles.viewButtonText}>View</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))
+            )}
+          </ScrollView>
+        )}
     </SafeAreaView>
   );
 }
@@ -143,10 +182,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B7280',
   },
-  list: {
-    marginTop: 24,
-    gap: 16,
-  },
+    list: {
+      marginTop: 24,
+      paddingBottom: 32,
+      gap: 16,
+    },
     searchBar: {
       marginTop: 16,
       flexDirection: 'row',
@@ -230,5 +270,26 @@ const styles = StyleSheet.create({
       fontSize: 13,
       color: '#64748B',
       textAlign: 'center',
+    },
+    loader: {
+      marginTop: 48,
+      alignItems: 'center',
+      gap: 12,
+    },
+    loaderText: {
+      fontSize: 13,
+      color: '#64748B',
+    },
+    retryButton: {
+      marginTop: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: '#1E88E5',
+    },
+    retryButtonText: {
+      color: '#1E88E5',
+      fontWeight: '600',
     },
 });
