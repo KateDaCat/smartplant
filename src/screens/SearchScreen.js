@@ -418,9 +418,15 @@ export default function SearchScreen() {
                   style={s.filterToggleButton}
                   onPress={() => setFiltersExpanded(prev => !prev)}
                   android_ripple={{color: '#00000014', borderless: true}}
+                  hitSlop={8}
                 >
-                  <Text style={s.filterToggleText}>
-                    {filtersExpanded ? '^' : '˅'}
+                  <Text
+                    style={[
+                      s.filterToggleText,
+                      !filtersExpanded && s.caretFlipped,
+                    ]}
+                  >
+                    ^
                   </Text>
                 </Pressable>
               </View>
@@ -498,7 +504,14 @@ export default function SearchScreen() {
                           {SPECIES_OPTIONS.find(o => o.key === speciesFilter)?.label ??
                             'All species'}
                         </Text>
-                        <Text style={s.pickerButtonChevron}>▼</Text>
+                    <Text
+                      style={[
+                        s.pickerButtonChevron,
+                        !speciesMenuVisible && s.caretFlipped,
+                      ]}
+                    >
+                      ^
+                    </Text>
                       </Pressable>
                       {speciesMenuVisible ? (
                         <View style={[s.dropdownMenu, s.speciesDropdownMenu]}>
@@ -584,7 +597,14 @@ export default function SearchScreen() {
                   <Text style={s.pickerButtonText}>
                     {SORT_OPTIONS.find(o => o.key === sort)?.label ?? 'Select'}
                   </Text>
-                  <Text style={s.pickerButtonChevron}>▼</Text>
+                  <Text
+                    style={[
+                      s.pickerButtonChevron,
+                      !sortMenuVisible && s.caretFlipped,
+                    ]}
+                  >
+                    ^
+                  </Text>
                 </Pressable>
                 {sortMenuVisible ? (
                   <View style={s.dropdownMenu}>
@@ -688,20 +708,18 @@ const s = StyleSheet.create({
     letterSpacing: 0.4,
   },
   filterToggleButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#A9D6BC',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F7FCF9',
   },
   filterToggleText: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: '700',
     color: '#2F6C4F',
-    lineHeight: 20,
+  },
+  caretFlipped: {
+    transform: [{scaleY: -1}],
   },
   filterRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
   chipBase: {
@@ -742,7 +760,7 @@ const s = StyleSheet.create({
     borderColor: '#A9D6BC',
   },
   pickerButtonText: {color: '#1F2937', fontWeight: '700'},
-  pickerButtonChevron: {color: '#2F6C4F', fontSize: 12},
+  pickerButtonChevron: {color: '#2F6C4F', fontSize: 22, fontWeight: '700'},
   dateRow: {flexDirection: 'row', gap: 12},
   dateButton: {
     flex: 1,
