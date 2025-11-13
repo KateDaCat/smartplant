@@ -112,6 +112,7 @@ export default function SearchScreen() {
   const [activeDateField, setActiveDateField] = useState(null);
   const [iosPickerVisible, setIosPickerVisible] = useState(false);
   const [iosTempDate, setIosTempDate] = useState(new Date());
+  const [filtersExpanded, setFiltersExpanded] = useState(true);
 
   const results = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -411,139 +412,162 @@ export default function SearchScreen() {
             </View>
 
             <View style={s.filterGroup}>
-              <Text style={s.filterLabel}>Filters</Text>
-
-              <View style={s.filterBlock}>
-                <Text style={s.filterSubLabel}>Rarity</Text>
-                <View style={s.filterRow}>
-                  <FilterChip
-                    label="Endangered"
-                    active={rarityFilter === 'endangered'}
-                    onPress={() => toggleRarity('endangered')}
-                  />
-                  <FilterChip
-                    label="Not endangered"
-                    active={rarityFilter === 'not_endangered'}
-                    onPress={() => toggleRarity('not_endangered')}
-                  />
-                </View>
+              <View style={s.filterGroupHeader}>
+                <Text style={s.filterLabel}>Filters</Text>
+                <Pressable
+                  style={s.filterToggleButton}
+                  onPress={() => setFiltersExpanded(prev => !prev)}
+                  android_ripple={{color: '#00000014', borderless: true}}
+                >
+                  <Text style={s.filterToggleText}>
+                    {filtersExpanded ? '^' : '˅'}
+                  </Text>
+                </Pressable>
               </View>
 
-              <View style={s.filterBlock}>
-                <Text style={s.filterSubLabel}>Source</Text>
-                <View style={s.filterRow}>
-                  <FilterChip
-                    label="Camera"
-                    active={sourceFilter === 'camera'}
-                    onPress={() =>
-                      setSourceFilter(prev => (prev === 'camera' ? 'all' : 'camera'))
-                    }
-                  />
-                  <FilterChip
-                    label="Library"
-                    active={sourceFilter === 'library'}
-                    onPress={() =>
-                      setSourceFilter(prev => (prev === 'library' ? 'all' : 'library'))
-                    }
-                  />
-                </View>
-              </View>
-
-              <View style={s.filterBlock}>
-                <Text style={s.filterSubLabel}>Confidence</Text>
-                <View style={s.filterRow}>
-                  {CONFIDENCE_OPTIONS.map(value => (
-                    <FilterChip
-                      key={value}
-                      label={value === 0 ? 'Any confidence' : `≥${value}%`}
-                      active={minConfidence === value}
-                      onPress={() =>
-                        setMinConfidence(prev => (prev === value ? 0 : value))
-                      }
-                    />
-                  ))}
-                </View>
-              </View>
-
-              <View style={s.filterBlock}>
-                <Text style={s.filterSubLabel}>Species Type</Text>
-                <View style={[s.dropdown, s.speciesDropdown]}>
-                  <Pressable
-                    style={s.pickerButton}
-                    onPress={() => {
-                      setSpeciesMenuVisible(v => !v);
-                      setSortMenuVisible(false);
-                    }}
-                    android_ripple={{color: '#00000014'}}
-                  >
-                    <Text style={s.pickerButtonText}>
-                      {SPECIES_OPTIONS.find(o => o.key === speciesFilter)?.label ??
-                        'All species'}
-                    </Text>
-                    <Text style={s.pickerButtonChevron}>▼</Text>
-                  </Pressable>
-                  {speciesMenuVisible ? (
-                    <View style={[s.dropdownMenu, s.speciesDropdownMenu]}>
-                      {SPECIES_OPTIONS.map(option => {
-                        const active = speciesFilter === option.key;
-                        return (
-                          <Pressable
-                            key={option.key}
-                            style={[s.dropdownItem, active && s.dropdownItemActive]}
-                            onPress={() => {
-                              setSpeciesFilter(option.key);
-                              setSpeciesMenuVisible(false);
-                            }}
-                            android_ripple={{color: '#00000010'}}
-                          >
-                            <Text
-                              style={[
-                                s.dropdownItemText,
-                                active && s.dropdownItemTextActive,
-                              ]}
-                            >
-                              {option.label}
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
+              {filtersExpanded ? (
+                <>
+                  <View style={s.filterBlock}>
+                    <Text style={s.filterSubLabel}>Rarity</Text>
+                    <View style={s.filterRow}>
+                      <FilterChip
+                        label="Endangered"
+                        active={rarityFilter === 'endangered'}
+                        onPress={() => toggleRarity('endangered')}
+                      />
+                      <FilterChip
+                        label="Not endangered"
+                        active={rarityFilter === 'not_endangered'}
+                        onPress={() => toggleRarity('not_endangered')}
+                      />
                     </View>
-                  ) : null}
-                </View>
-              </View>
+                  </View>
 
-              <View style={s.filterBlock}>
-                <Text style={s.filterSubLabel}>Date range</Text>
-                <View style={s.filterRow}>
-                  <FilterChip
-                    label="Any time"
-                    active={!dateRange.start && !dateRange.end}
-                    onPress={clearDateRange}
-                  />
-                </View>
-                <View style={s.dateRow}>
-                  <Pressable
-                    style={s.dateButton}
-                    onPress={() => openDatePicker('start')}
-                    android_ripple={{color: '#00000010'}}
-                  >
-                    <Text style={s.dateButtonLabel}>From</Text>
-                    <Text style={s.dateButtonValue}>
-                      {dateRange.start ? formatDateOnly(dateRange.start) : 'Select date'}
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    style={s.dateButton}
-                    onPress={() => openDatePicker('end')}
-                    android_ripple={{color: '#00000010'}}
-                  >
-                    <Text style={s.dateButtonLabel}>To</Text>
-                    <Text style={s.dateButtonValue}>
-                      {dateRange.end ? formatDateOnly(dateRange.end) : 'Select date'}
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
+                  <View style={s.filterBlock}>
+                    <Text style={s.filterSubLabel}>Source</Text>
+                    <View style={s.filterRow}>
+                      <FilterChip
+                        label="Camera"
+                        active={sourceFilter === 'camera'}
+                        onPress={() =>
+                          setSourceFilter(prev =>
+                            prev === 'camera' ? 'all' : 'camera',
+                          )
+                        }
+                      />
+                      <FilterChip
+                        label="Library"
+                        active={sourceFilter === 'library'}
+                        onPress={() =>
+                          setSourceFilter(prev =>
+                            prev === 'library' ? 'all' : 'library',
+                          )
+                        }
+                      />
+                    </View>
+                  </View>
+
+                  <View style={s.filterBlock}>
+                    <Text style={s.filterSubLabel}>Confidence</Text>
+                    <View style={s.filterRow}>
+                      {CONFIDENCE_OPTIONS.map(value => (
+                        <FilterChip
+                          key={value}
+                          label={value === 0 ? 'Any confidence' : `≥${value}%`}
+                          active={minConfidence === value}
+                          onPress={() =>
+                            setMinConfidence(prev => (prev === value ? 0 : value))
+                          }
+                        />
+                      ))}
+                    </View>
+                  </View>
+
+                  <View style={s.filterBlock}>
+                    <Text style={s.filterSubLabel}>Species Type</Text>
+                    <View style={[s.dropdown, s.speciesDropdown]}>
+                      <Pressable
+                        style={s.pickerButton}
+                        onPress={() => {
+                          setSpeciesMenuVisible(v => !v);
+                          setSortMenuVisible(false);
+                        }}
+                        android_ripple={{color: '#00000014'}}
+                      >
+                        <Text style={s.pickerButtonText}>
+                          {SPECIES_OPTIONS.find(o => o.key === speciesFilter)?.label ??
+                            'All species'}
+                        </Text>
+                        <Text style={s.pickerButtonChevron}>▼</Text>
+                      </Pressable>
+                      {speciesMenuVisible ? (
+                        <View style={[s.dropdownMenu, s.speciesDropdownMenu]}>
+                          {SPECIES_OPTIONS.map(option => {
+                            const active = speciesFilter === option.key;
+                            return (
+                              <Pressable
+                                key={option.key}
+                                style={[s.dropdownItem, active && s.dropdownItemActive]}
+                                onPress={() => {
+                                  setSpeciesFilter(option.key);
+                                  setSpeciesMenuVisible(false);
+                                }}
+                                android_ripple={{color: '#00000010'}}
+                              >
+                                <Text
+                                  style={[
+                                    s.dropdownItemText,
+                                    active && s.dropdownItemTextActive,
+                                  ]}
+                                >
+                                  {option.label}
+                                </Text>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+                      ) : null}
+                    </View>
+                  </View>
+
+                  <View style={s.filterBlock}>
+                    <Text style={s.filterSubLabel}>Date range</Text>
+                    <View style={s.filterRow}>
+                      <FilterChip
+                        label="Any time"
+                        active={!dateRange.start && !dateRange.end}
+                        onPress={clearDateRange}
+                      />
+                    </View>
+                    <View style={s.dateRow}>
+                      <Pressable
+                        style={s.dateButton}
+                        onPress={() => openDatePicker('start')}
+                        android_ripple={{color: '#00000010'}}
+                      >
+                        <Text style={s.dateButtonLabel}>From</Text>
+                        <Text style={s.dateButtonValue}>
+                          {dateRange.start
+                            ? formatDateOnly(dateRange.start)
+                            : 'Select date'}
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        style={s.dateButton}
+                        onPress={() => openDatePicker('end')}
+                        android_ripple={{color: '#00000010'}}
+                      >
+                        <Text style={s.dateButtonLabel}>To</Text>
+                        <Text style={s.dateButtonValue}>
+                          {dateRange.end
+                            ? formatDateOnly(dateRange.end)
+                            : 'Select date'}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                </>
+              ) : null}
             </View>
 
             <View style={s.filterGroup}>
@@ -643,6 +667,11 @@ const s = StyleSheet.create({
   },
   input: {flex: 1, color: '#1F2937', fontSize: 15},
   filterGroup: {gap: 12},
+  filterGroupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   filterBlock: {gap: 8},
   filterLabel: {
     fontSize: 13,
@@ -657,6 +686,22 @@ const s = StyleSheet.create({
     color: '#475569',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
+  },
+  filterToggleButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#A9D6BC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F7FCF9',
+  },
+  filterToggleText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#2F6C4F',
+    lineHeight: 20,
   },
   filterRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
   chipBase: {
