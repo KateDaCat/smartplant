@@ -3,7 +3,6 @@ import { SafeAreaView, Text, StyleSheet, View, TouchableOpacity, TextInput } fro
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { ADMIN_USER_DETAIL } from '../../navigation/routes';
-
 const INITIAL_USERS = [
   {
     user_id: 1,
@@ -86,39 +85,39 @@ export default function AdminUsersScreen() {
         )}
       </View>
 
-      <View style={styles.list}>
-        {filteredUsers.length === 0 && (
-          <View style={styles.emptyState}>
-            <Ionicons name="people-outline" size={20} color="#94A3B8" />
-            <Text style={styles.emptyStateText}>No users found. Try a different search.</Text>
-          </View>
-        )}
-        {filteredUsers.map((user) => (
-            <View key={user.user_id} style={styles.card}>
-              <Text style={[styles.username, !user.active && styles.usernameInactive]}>
-                {user.username}
-              </Text>
-              <View style={styles.metaRow}>
-                <View style={styles.metaTextCol}>
-                  <Text style={styles.metaId}>User ID: {user.user_id}</Text>
-                  <Text style={styles.phone}>{user.phone}</Text>
+        <View style={styles.list}>
+          {filteredUsers.length === 0 && (
+            <View style={styles.emptyState}>
+              <Ionicons name="people-outline" size={20} color="#94A3B8" />
+              <Text style={styles.emptyStateText}>No users found. Try a different search.</Text>
+            </View>
+          )}
+          {filteredUsers.map((user) => (
+              <View key={user.user_id} style={styles.card}>
+                <Text style={[styles.username, !user.active && styles.usernameInactive]}>
+                  {user.username}
+                </Text>
+                <View style={styles.metaRow}>
+                  <View style={styles.metaTextCol}>
+                    <Text style={styles.metaId}>User ID: {user.user_id}</Text>
+                    <Text style={styles.phone}>{user.phone}</Text>
+                  </View>
+                  <TouchableOpacity
+                    activeOpacity={0.75}
+                    style={styles.viewButton}
+                    onPress={() =>
+                      navigation.navigate(ADMIN_USER_DETAIL, {
+                        user,
+                        onUpdate: handleUserUpdate,
+                      })
+                    }
+                  >
+                    <Text style={styles.viewButtonText}>View</Text>
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  activeOpacity={0.75}
-                  style={styles.viewButton}
-                  onPress={() =>
-                    navigation.navigate(ADMIN_USER_DETAIL, {
-                      user,
-                      onUpdate: handleUserUpdate,
-                    })
-                  }
-                >
-                  <Text style={styles.viewButtonText}>View</Text>
-                </TouchableOpacity>
-              </View>
-          </View>
-        ))}
-      </View>
+            </View>
+          ))}
+        </View>
     </SafeAreaView>
   );
 }
@@ -143,10 +142,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B7280',
   },
-  list: {
-    marginTop: 24,
-    gap: 16,
-  },
+    list: {
+      marginTop: 24,
+      gap: 16,
+    },
     searchBar: {
       marginTop: 16,
       flexDirection: 'row',
